@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback } from 'react';
 import Stock from './Stock';
 import Waste from './Waste';
 import Foundation from './Foundation';
@@ -14,14 +14,16 @@ export default function GameBoard() {
   const waste = useGameStore(s => s.waste);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const [dragSource, setDragSource] = useState<{ pileId: string; cardIndex: number } | null>(null);
+  const dragSourceRef = useRef<{ pileId: string; cardIndex: number } | null>(null);
 
   const handleDragStart = useCallback((pileId: string, cardIndex: number) => {
-    setDragSource({ pileId, cardIndex });
+    dragSourceRef.current = { pileId, cardIndex };
   }, []);
 
   const handleDragEnd = useCallback((point: { x: number; y: number }) => {
+    const dragSource = dragSourceRef.current;
     if (!dragSource) return;
+    dragSourceRef.current = null;
 
     // Find drop target using elementsFromPoint
     const elements = document.elementsFromPoint(point.x, point.y);
@@ -56,9 +58,7 @@ export default function GameBoard() {
         });
       }
     }
-
-    setDragSource(null);
-  }, [dragSource, moveCards, waste, tableau]);
+  }, [moveCards, waste, tableau]);
 
   return (
     <div
@@ -74,7 +74,6 @@ export default function GameBoard() {
             cardHeight={cardHeight}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            draggingFrom={dragSource?.pileId}
           />
         </div>
         <div className="top-right">
@@ -94,8 +93,6 @@ export default function GameBoard() {
             faceUpOffset={faceUpOffset}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            draggingFrom={dragSource?.pileId}
-            draggingIndex={dragSource?.pileId === `tableau-${i}` ? dragSource.cardIndex : undefined}
           />
         ))}
       </div>
