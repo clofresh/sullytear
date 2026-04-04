@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback } from 'react';
 import Stock from './Stock';
 import Waste from './Waste';
 import Foundation from './Foundation';
@@ -9,56 +9,60 @@ import './GameBoard.css';
 
 export default function GameBoard() {
   const { cardWidth, cardHeight, gap, faceUpOffset } = useResponsive();
-  const moveCards = useGameStore(s => s.moveCards);
-  const tableau = useGameStore(s => s.tableau);
-  const waste = useGameStore(s => s.waste);
   const boardRef = useRef<HTMLDivElement>(null);
-
-  const [dragSource, setDragSource] = useState<{ pileId: string; cardIndex: number } | null>(null);
+  const dragSourceRef = useRef<{ pileId: string; cardIndex: number } | null>(null);
 
   const handleDragStart = useCallback((pileId: string, cardIndex: number) => {
-    setDragSource({ pileId, cardIndex });
+    dragSourceRef.current = { pileId, cardIndex };
   }, []);
 
   const handleDragEnd = useCallback((point: { x: number; y: number }) => {
+    const dragSource = dragSourceRef.current;
     if (!dragSource) return;
+    dragSourceRef.current = null;
 
-    // Find drop target using elementsFromPoint
+    // Read fresh state from store (avoid stale closures)
+    const state = useGameStore.getState();
+
+    // Find drop target — temporarily hide the dragged card so elementsFromPoint
+    // can see through to the pile underneath
     const elements = document.elementsFromPoint(point.x, point.y);
     let targetPileId: string | null = null;
 
     for (const el of elements) {
       const pileEl = (el as HTMLElement).closest('[data-pile-id]');
       if (pileEl) {
-        targetPileId = pileEl.getAttribute('data-pile-id');
-        break;
+        const id = pileEl.getAttribute('data-pile-id');
+        // Skip the source pile — the dragged card is still visually inside it
+        if (id && id !== dragSource.pileId) {
+          targetPileId = id;
+          break;
+        }
       }
     }
 
-    if (targetPileId && targetPileId !== dragSource.pileId) {
-      // Get the cards being moved
-      let movingCards: import('../game/types').Card[];
-      if (dragSource.pileId === 'waste') {
-        movingCards = [waste[waste.length - 1]];
-      } else if (dragSource.pileId.startsWith('tableau-')) {
-        const tabIdx = parseInt(dragSource.pileId.split('-')[1]);
-        movingCards = tableau[tabIdx].slice(dragSource.cardIndex);
-      } else {
-        movingCards = [];
-      }
+    if (!targetPileId) return;
 
-      if (movingCards.length > 0) {
-        moveCards({
-          cards: movingCards,
-          from: dragSource.pileId as 'waste' | `tableau-${number}`,
-          fromIndex: dragSource.cardIndex,
-          to: targetPileId as `tableau-${number}` | `foundation-${number}`,
-        });
-      }
+    // Get the cards being moved from fresh state
+    let movingCards: import('../game/types').Card[];
+    if (dragSource.pileId === 'waste') {
+      movingCards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
+    } else if (dragSource.pileId.startsWith('tableau-')) {
+      const tabIdx = parseInt(dragSource.pileId.split('-')[1]);
+      movingCards = state.tableau[tabIdx].slice(dragSource.cardIndex);
+    } else {
+      movingCards = [];
     }
 
-    setDragSource(null);
-  }, [dragSource, moveCards, waste, tableau]);
+    if (movingCards.length > 0) {
+      state.moveCards({
+        cards: movingCards,
+        from: dragSource.pileId as 'waste' | `tableau-${number}`,
+        fromIndex: dragSource.cardIndex,
+        to: targetPileId as `tableau-${number}` | `foundation-${number}`,
+      });
+    }
+  }, []);
 
   return (
     <div
@@ -74,7 +78,6 @@ export default function GameBoard() {
             cardHeight={cardHeight}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            draggingFrom={dragSource?.pileId}
           />
         </div>
         <div className="top-right">
@@ -94,8 +97,6 @@ export default function GameBoard() {
             faceUpOffset={faceUpOffset}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            draggingFrom={dragSource?.pileId}
-            draggingIndex={dragSource?.pileId === `tableau-${i}` ? dragSource.cardIndex : undefined}
           />
         ))}
       </div>

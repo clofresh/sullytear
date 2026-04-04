@@ -10,9 +10,7 @@ interface TableauProps {
   cardHeight: number;
   faceUpOffset: number;
   onDragStart?: (pileId: string, cardIndex: number) => void;
-  onDragEnd?: (point: { x: number; y: number }) => void;
-  draggingFrom?: string | null;
-  draggingIndex?: number;
+  onDragEnd?: (clientPoint: { x: number; y: number }) => void;
 }
 
 export default function Tableau({
@@ -22,8 +20,6 @@ export default function Tableau({
   faceUpOffset,
   onDragStart,
   onDragEnd,
-  draggingFrom,
-  draggingIndex,
 }: TableauProps) {
   const pile = useGameStore(s => s.tableau[index]);
   const foundations = useGameStore(s => s.foundations);
@@ -53,8 +49,6 @@ export default function Tableau({
     }
   }
 
-  const isDraggingThisPile = draggingFrom === pileId;
-
   return (
     <div
       data-pile-id={pileId}
@@ -74,9 +68,6 @@ export default function Tableau({
           top += pile[j].faceUp ? faceUpOffset : FACE_DOWN_OFFSET;
         }
 
-        const isBeingDragged = isDraggingThisPile && draggingIndex !== undefined && i >= draggingIndex;
-        const canDrag = card.faceUp;
-
         return (
           <Card
             key={card.id}
@@ -86,10 +77,9 @@ export default function Tableau({
             style={{ top }}
             zIndex={i}
             onDoubleClick={() => handleDoubleClick(i)}
-            draggable={canDrag}
+            draggable={card.faceUp}
             onDragStart={() => onDragStart?.(pileId, i)}
-            onDragEnd={(info) => onDragEnd?.(info.point)}
-            isDragging={isBeingDragged}
+            onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
           />
         );
       })}

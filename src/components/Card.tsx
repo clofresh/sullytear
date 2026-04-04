@@ -12,9 +12,7 @@ interface CardProps {
   onDoubleClick?: () => void;
   draggable?: boolean;
   onDragStart?: () => void;
-  onDragEnd?: (info: { point: { x: number; y: number } }) => void;
-  isDragging?: boolean;
-  dragConstraints?: false;
+  onDragEnd?: (info: { point: { x: number; y: number }; event: PointerEvent }) => void;
   zIndex?: number;
 }
 
@@ -28,7 +26,6 @@ export default function Card({
   draggable = false,
   onDragStart,
   onDragEnd,
-  isDragging,
   zIndex = 0,
 }: CardProps) {
   const color = getColor(card.suit);
@@ -42,7 +39,7 @@ export default function Card({
       style={{
         width,
         height,
-        zIndex: isDragging ? 1000 : zIndex,
+        zIndex,
         ...style,
       }}
       animate={{ rotateY: card.faceUp ? 0 : 180 }}
@@ -50,13 +47,12 @@ export default function Card({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       drag={draggable}
-      dragSnapToOrigin={!isDragging}
+      dragSnapToOrigin
       dragElastic={0}
       dragMomentum={false}
       onDragStart={onDragStart}
-      onDragEnd={(_e, info) => onDragEnd?.({ point: info.point })}
+      onDragEnd={(e, info) => onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent })}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
-      layout
     >
       <div className="card-inner">
         <div className="card-face">

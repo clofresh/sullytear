@@ -6,11 +6,10 @@ interface WasteProps {
   cardWidth: number;
   cardHeight: number;
   onDragStart?: (pileId: string, cardIndex: number) => void;
-  onDragEnd?: (point: { x: number; y: number }) => void;
-  draggingFrom?: string | null;
+  onDragEnd?: (clientPoint: { x: number; y: number }) => void;
 }
 
-export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd, draggingFrom }: WasteProps) {
+export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }: WasteProps) {
   const waste = useGameStore(s => s.waste);
   const foundations = useGameStore(s => s.foundations);
   const moveCards = useGameStore(s => s.moveCards);
@@ -46,8 +45,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd, d
         onDoubleClick={handleDoubleClick}
         draggable
         onDragStart={() => onDragStart?.('waste', waste.length - 1)}
-        onDragEnd={(info) => onDragEnd?.(info.point)}
-        isDragging={draggingFrom === 'waste'}
+        onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
       />
     </div>
   );

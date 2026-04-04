@@ -1,6 +1,7 @@
 import { useGameStore } from '../game/store';
 import { useTimer } from '../hooks/useTimer';
 import { canAutoComplete } from '../game/rules';
+import { COMMIT_HASH } from '../generated/buildInfo';
 import './Header.css';
 
 export default function Header() {
@@ -32,6 +33,7 @@ export default function Header() {
       <div className="header-right">
         <div className="header-stat">Moves: <span>{moves}</span></div>
         <div className="header-stat">Time: <span>{time}</span></div>
+        <div className="header-stat header-hash">{COMMIT_HASH}</div>
       </div>
     </header>
   );
