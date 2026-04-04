@@ -83,10 +83,11 @@ export default function Tableau({
             el.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
             el.style.transform = '';
           }
-          el.style.zIndex = '';
-          // Clean up transition after animation
+          // Defer zIndex reset until after snap-back animation completes,
+          // otherwise cards render behind face-down cards during animation
           setTimeout(() => {
             el.style.transition = '';
+            el.style.zIndex = '';
           }, 500);
         }
       });
