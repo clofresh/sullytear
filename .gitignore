@@ -137,3 +137,7 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# TypeScript composite build artifacts
+vite.config.js
+vite.config.d.ts

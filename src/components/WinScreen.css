@@ -1,0 +1,49 @@
+.win-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.win-content {
+  text-align: center;
+  z-index: 101;
+}
+
+.win-title {
+  font-size: 3rem;
+  color: var(--gold);
+  margin-bottom: 12px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.win-stats {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-bottom: 24px;
+}
+
+.win-btn {
+  background: var(--gold);
+  color: #1a1a1a;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.confetti {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  pointer-events: none;
+}

@@ -1,0 +1,36 @@
+.game-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.top-row {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.top-left {
+  display: flex;
+  gap: var(--pile-gap);
+}
+
+.top-right {
+  display: flex;
+  gap: var(--pile-gap);
+}
+
+.tableau-row {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  justify-content: center;
+  gap: var(--pile-gap);
+  align-items: flex-start;
+}
