@@ -1,4 +1,5 @@
 import { useGameStore } from '../game/store';
+import { useCombatStore } from '../game/combatStore';
 import { useTimer } from '../hooks/useTimer';
 import { canAutoComplete } from '../game/rules';
 import { COMMIT_HASH } from '../generated/buildInfo';
@@ -6,6 +7,7 @@ import './Header.css';
 
 export default function Header() {
   const newGame = useGameStore(s => s.newGame);
+  const resetCombat = useCombatStore(s => s.resetCombat);
   const undo = useGameStore(s => s.undo);
   const autoCompleteAction = useGameStore(s => s.autoComplete);
   const moves = useGameStore(s => s.moves);
@@ -18,11 +20,16 @@ export default function Header() {
 
   const showAutoComplete = !isWon && canAutoComplete(stock, waste, tableau);
 
+  const handleNewGame = () => {
+    newGame();
+    resetCombat();
+  };
+
   return (
     <header className="header">
       <div className="header-left">
         <span className="header-title">Solitaire</span>
-        <button className="header-btn" onClick={() => newGame()}>New</button>
+        <button className="header-btn" onClick={handleNewGame}>New</button>
         <button className="header-btn" onClick={undo} disabled={undoStack.length === 0}>Undo</button>
         {showAutoComplete && (
           <button className="header-btn" onClick={autoCompleteAction} style={{ color: 'var(--gold)' }}>

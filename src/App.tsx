@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react';
 import Header from './components/Header';
 import GameBoard from './components/GameBoard';
 import WinScreen from './components/WinScreen';
+import CombatBar from './combat/CombatBar';
+import CombatOverlay from './combat/CombatOverlay';
 import './App.css';
 
 const AnimatedBackground = lazy(() => import('./background/AnimatedBackground'));
@@ -13,8 +15,10 @@ export default function App() {
         <AnimatedBackground />
       </Suspense>
       <Header />
+      <CombatBar />
       <GameBoard />
       <WinScreen />
+      <CombatOverlay />
     </>
   );
 }

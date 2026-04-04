@@ -15,6 +15,7 @@ export interface Snapshot {
   tableau: Card[][];
   foundations: Card[][];
   moves: number;
+  stockCycleCount: number;
 }
 
 export interface GameState {
@@ -28,6 +29,7 @@ export interface GameState {
   isWon: boolean;
   undoStack: Snapshot[];
   gameId: number;
+  stockCycleCount: number;
 }
 
 export interface MovePayload {

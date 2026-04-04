@@ -1,0 +1,91 @@
+.combat-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.combat-victory {
+  background: radial-gradient(ellipse at center, rgba(50, 40, 10, 0.95) 0%, rgba(20, 15, 5, 0.98) 100%);
+}
+
+.combat-defeat {
+  background: radial-gradient(ellipse at center, rgba(50, 10, 10, 0.95) 0%, rgba(20, 5, 5, 0.98) 100%);
+}
+
+.combat-overlay-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.combat-overlay-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.combat-victory .combat-overlay-icon {
+  color: var(--gold);
+  filter: drop-shadow(0 0 16px rgba(212, 168, 67, 0.5));
+}
+
+.combat-defeat .combat-overlay-icon {
+  color: #cc3333;
+  filter: drop-shadow(0 0 16px rgba(204, 51, 51, 0.5));
+}
+
+.combat-overlay-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.victory-title {
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(212, 168, 67, 0.4);
+}
+
+.defeat-title {
+  color: #cc3333;
+  text-shadow: 0 0 20px rgba(204, 51, 51, 0.4);
+}
+
+.combat-overlay-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 32px;
+}
+
+.combat-overlay-btn {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.combat-overlay-btn:active {
+  transform: scale(0.96);
+}
+
+.victory-btn {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.victory-btn:hover {
+  background: rgba(212, 168, 67, 0.15);
+}
+
+.defeat-btn {
+  color: #cc3333;
+  border-color: #cc3333;
+}
+
+.defeat-btn:hover {
+  background: rgba(204, 51, 51, 0.15);
+}
