@@ -16,7 +16,7 @@ const vertexShader = /* glsl */ `
     vColor = aColor;
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPos;
-    gl_PointSize = aSize * (300.0 / -mvPos.z);
+    gl_PointSize = aSize * (800.0 / -mvPos.z);
   }
 `;
 
@@ -138,40 +138,40 @@ export default function BurstParticles({ effectQueue }: Props) {
     if (isVictory) {
       // Gold explosion from center
       spawn(100, 0, 0, 0,
-        () => [(Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.2],
-        C_GOLD, [0.08, 0.16], [1.5, 3], -0.002, 0.97, C_WHITE);
+        () => [(Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.2],
+        C_GOLD, [0.15, 0.35], [1.5, 3], -0.002, 0.97, C_WHITE);
       return;
     }
     if (isDefeat) {
       // Dark red particles sinking
       spawn(50, 0, 4, 0,
-        () => [(Math.random() - 0.5) * 0.2, -Math.random() * 0.1 - 0.05, (Math.random() - 0.5) * 0.1],
-        C_DARK_RED, [0.06, 0.12], [2, 4], 0.005, 0.99, C_RED);
+        () => [(Math.random() - 0.5) * 0.3, -Math.random() * 0.15 - 0.05, (Math.random() - 0.5) * 0.1],
+        C_DARK_RED, [0.12, 0.25], [2, 4], 0.005, 0.99, C_RED);
       return;
     }
 
     switch (ev.type) {
       case 'hero-attack': {
         const count = isCombo ? Math.min(60, 20 + ev.damage) : 30;
-        const intensity = isCombo ? 0.3 : 0.2;
+        const intensity = isCombo ? 0.4 : 0.3;
         // Burst upward from bottom
         spawn(count, 0, -6, 0,
-          () => [(Math.random() - 0.5) * intensity, Math.random() * 0.2 + 0.1, (Math.random() - 0.5) * 0.05],
-          C_GREEN, [0.05, 0.12], [0.8, 1.8], -0.003, 0.97, C_WHITE);
+          () => [(Math.random() - 0.5) * intensity, Math.random() * 0.25 + 0.1, (Math.random() - 0.5) * 0.05],
+          C_GREEN, [0.1, 0.25], [0.8, 1.8], -0.003, 0.97, C_WHITE);
         break;
       }
       case 'monster-attack': {
         // Rain down from top, red
         spawn(25, 0, 6, 0,
-          () => [(Math.random() - 0.5) * 0.15, -Math.random() * 0.15 - 0.05, (Math.random() - 0.5) * 0.05],
-          C_RED, [0.04, 0.08], [0.8, 1.5], 0.004, 0.98);
+          () => [(Math.random() - 0.5) * 0.2, -Math.random() * 0.2 - 0.08, (Math.random() - 0.5) * 0.05],
+          C_RED, [0.08, 0.18], [0.8, 1.5], 0.004, 0.98);
         break;
       }
       case 'hero-heal': {
         // Gentle float up, bright green
         spawn(20, 0, -2, 0,
-          () => [(Math.random() - 0.5) * 0.08, Math.random() * 0.08 + 0.02, (Math.random() - 0.5) * 0.03],
-          C_HEAL_GREEN, [0.03, 0.06], [1, 2], -0.001, 0.99, C_WHITE);
+          () => [(Math.random() - 0.5) * 0.1, Math.random() * 0.1 + 0.03, (Math.random() - 0.5) * 0.03],
+          C_HEAL_GREEN, [0.08, 0.15], [1, 2], -0.001, 0.99, C_WHITE);
         break;
       }
       case 'poison': {
@@ -179,9 +179,9 @@ export default function BurstParticles({ effectQueue }: Props) {
         spawn(20, 0, 0, 0,
           (i) => {
             const angle = (i / 20) * Math.PI * 2;
-            return [Math.cos(angle) * 0.12, Math.sin(angle) * 0.12, (Math.random() - 0.5) * 0.03];
+            return [Math.cos(angle) * 0.15, Math.sin(angle) * 0.15, (Math.random() - 0.5) * 0.03];
           },
-          C_PURPLE, [0.04, 0.08], [0.8, 1.5], 0, 0.96);
+          C_PURPLE, [0.1, 0.18], [0.8, 1.5], 0, 0.96);
         break;
       }
       case 'empower': {
@@ -189,9 +189,9 @@ export default function BurstParticles({ effectQueue }: Props) {
         spawn(25, 0, 0, 0,
           (i) => {
             const angle = (i / 25) * Math.PI * 2;
-            return [Math.cos(angle) * 0.15, Math.sin(angle) * 0.15, 0];
+            return [Math.cos(angle) * 0.18, Math.sin(angle) * 0.18, 0];
           },
-          C_GOLD, [0.06, 0.1], [0.8, 1.5], 0, 0.97, C_WHITE);
+          C_GOLD, [0.1, 0.2], [0.8, 1.5], 0, 0.97, C_WHITE);
         break;
       }
     }
@@ -239,6 +239,8 @@ export default function BurstParticles({ effectQueue }: Props) {
     // Mark attributes as needing update
     geometry.attributes.position.needsUpdate = true;
     (geometry.attributes.aAlpha as THREE.BufferAttribute).needsUpdate = true;
+    (geometry.attributes.aSize as THREE.BufferAttribute).needsUpdate = true;
+    (geometry.attributes.aColor as THREE.BufferAttribute).needsUpdate = true;
   });
 
   return (

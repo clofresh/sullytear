@@ -20,8 +20,8 @@ const vertexShader = /* glsl */ `
     vAlpha = sin(uTime * 0.5) * 0.1 + 0.9;
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPos;
-    // Size attenuation
-    gl_PointSize = aSize * (300.0 / -mvPos.z);
+    // Size attenuation (scale matches Three.js pointsMaterial convention)
+    gl_PointSize = aSize * (800.0 / -mvPos.z);
   }
 `;
 
@@ -31,7 +31,7 @@ const fragmentShader = /* glsl */ `
   void main() {
     float dist = distance(gl_PointCoord, vec2(0.5));
     float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
-    alpha *= vAlpha * 0.35;
+    alpha *= vAlpha * 0.6;
     if (alpha < 0.01) discard;
     gl_FragColor = vec4(vColor, alpha);
   }
@@ -72,7 +72,7 @@ export default function Particles({ combatState }: Props) {
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.001;
 
       // Per-particle size variation
-      sizes[i] = 0.02 + Math.random() * 0.06;
+      sizes[i] = 0.04 + Math.random() * 0.1;
 
       // Per-particle color variation (hue ± 0.05)
       const c = new THREE.Color();
