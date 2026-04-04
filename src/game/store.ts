@@ -11,6 +11,7 @@ function takeSnapshot(state: GameState): Snapshot {
     tableau: state.tableau.map(pile => pile.map(c => ({ ...c }))),
     foundations: state.foundations.map(pile => pile.map(c => ({ ...c }))),
     moves: state.moves,
+    stockCycleCount: state.stockCycleCount,
   };
 }
 
@@ -27,6 +28,7 @@ function createInitialState(drawMode: 1 | 3 = 1): Omit<GameState, 'gameId'> {
     startTime: null,
     isWon: false,
     undoStack: [],
+    stockCycleCount: 0,
   };
 }
 
@@ -90,6 +92,7 @@ export const useGameStore = create<GameState & GameActions>()(
             moves: state.moves + 1,
             startTime: state.startTime ?? Date.now(),
             undoStack: [...state.undoStack, snapshot].slice(-50),
+            stockCycleCount: state.stockCycleCount + 1,
           });
           return;
         }
@@ -172,6 +175,7 @@ export const useGameStore = create<GameState & GameActions>()(
           moves: snapshot.moves,
           undoStack: stack,
           isWon: false,
+          stockCycleCount: snapshot.stockCycleCount,
         });
       },
 
@@ -208,6 +212,7 @@ export const useGameStore = create<GameState & GameActions>()(
         startTime: state.startTime,
         gameId: state.gameId,
         isWon: state.isWon,
+        stockCycleCount: state.stockCycleCount,
       }),
     }
   )

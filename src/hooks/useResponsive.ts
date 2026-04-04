@@ -22,7 +22,7 @@ export function useResponsive(): Dimensions {
 
   return useMemo(() => {
     const gap = size.w < 480 ? 6 : size.w < 1024 ? 10 : 14;
-    const headerHeight = 48;
+    const headerHeight = 48 + 72; // header + combat bar
     const availableWidth = size.w - 16; // 8px padding each side
     const cardWidth = Math.min(Math.floor((availableWidth - 8 * gap) / 7), MAX_CARD_WIDTH);
     const cardHeight = Math.round(cardWidth * CARD_ASPECT_RATIO);
