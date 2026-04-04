@@ -295,6 +295,143 @@ describe('Combat Store', () => {
     });
   });
 
+  describe('Reveal face-down card deals chip damage (#8)', () => {
+    it('deals 2 damage when a face-down card is revealed', () => {
+      const monsterHpBefore = useCombatStore.getState().monsterMaxHp;
+
+      // Column 0: face-down 7♥, face-up 5♠. Column 1: face-up 6♥.
+      // Moving 5♠ to column 1 reveals the 7♥.
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 7, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      // Monster took 2 chip damage from reveal
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore - 2);
+    });
+
+    it('undo reverses reveal damage', () => {
+      const monsterHpBefore = useCombatStore.getState().monsterMaxHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 7, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore - 2);
+
+      useGameStore.getState().undo();
+
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore);
+    });
+  });
+
+  describe('Combo attack — 3+ card runs (#11)', () => {
+    it('deals 2 × cards moved when moving 3+ cards', () => {
+      const monsterHpBefore = useCombatStore.getState().monsterMaxHp;
+
+      // Column 0: 8♥, 7♠, 6♥ (descending, alternating color). Column 1: 9♠.
+      // Moving all 3 cards to column 1 triggers a combo.
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 8), makeCard('spades', 7), makeCard('hearts', 6)],
+          [makeCard('spades', 9)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [
+          makeCard('hearts', 8),
+          makeCard('spades', 7),
+          makeCard('hearts', 6),
+        ],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      // Combo damage: 2 × 3 = 6, plus column clear heal (hero side, not monster)
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore - 6);
+    });
+
+    it('does NOT trigger combo when moving 2 cards', () => {
+      const monsterHpBefore = useCombatStore.getState().monsterMaxHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 7), makeCard('hearts', 6)],
+          [makeCard('hearts', 8)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 7), makeCard('hearts', 6)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      // No combo damage (only 2 cards)
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore);
+    });
+
+    it('undo reverses combo damage', () => {
+      const monsterHpBefore = useCombatStore.getState().monsterMaxHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 8), makeCard('spades', 7), makeCard('hearts', 6)],
+          [makeCard('spades', 9)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [
+          makeCard('hearts', 8),
+          makeCard('spades', 7),
+          makeCard('hearts', 6),
+        ],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore - 6);
+
+      useGameStore.getState().undo();
+
+      expect(useCombatStore.getState().monsterHp).toBe(monsterHpBefore);
+    });
+  });
+
   describe('Undo', () => {
     it('reverses foundation damage on undo', () => {
       const monsterHpBefore = useCombatStore.getState().monsterMaxHp;

@@ -148,6 +148,9 @@ let prevStockCycleCount = 0;
 let prevWasteLength = 0;
 let prevWasteTopId: string | null = null;
 let prevTableauEmpty: boolean[] = [];
+let prevFaceDownCounts: number[] = [];
+let prevTableauLengths: number[] = [];
+let prevMoves = 0;
 let _suppressEvents = false;
 
 function initTracking() {
@@ -157,6 +160,9 @@ function initTracking() {
   prevWasteLength = state.waste.length;
   prevWasteTopId = state.waste.length > 0 ? state.waste[state.waste.length - 1].id : null;
   prevTableauEmpty = state.tableau.map(t => t.length === 0);
+  prevFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+  prevTableauLengths = state.tableau.map(t => t.length);
+  prevMoves = state.moves;
 }
 
 // Export for tests — suppress events during state setup, then reset tracking
@@ -188,6 +194,8 @@ useGameStore.subscribe((state) => {
     prevWasteLength = state.waste.length;
     prevWasteTopId = state.waste.length > 0 ? state.waste[state.waste.length - 1].id : null;
     prevTableauEmpty = state.tableau.map(t => t.length === 0);
+    prevFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+    prevTableauLengths = state.tableau.map(t => t.length);
     return;
   }
 
@@ -294,4 +302,42 @@ useGameStore.subscribe((state) => {
     }
   }
   prevTableauEmpty = currentTableauEmpty;
+
+  // --- 5. Detect face-down card reveals (#8) ---
+  const currentFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+  for (let i = 0; i < 7; i++) {
+    if (currentFaceDownCounts[i] < prevFaceDownCounts[i]) {
+      // A face-down card was revealed — deal 2 chip damage per reveal
+      const reveals = prevFaceDownCounts[i] - currentFaceDownCounts[i];
+      combat.dealDamageToMonster(2 * reveals, 'Reveal!');
+    } else if (currentFaceDownCounts[i] > prevFaceDownCounts[i]) {
+      // Undo: card flipped back to face-down — heal monster
+      const unreveals = currentFaceDownCounts[i] - prevFaceDownCounts[i];
+      combat.healMonster(2 * unreveals);
+    }
+  }
+  prevFaceDownCounts = currentFaceDownCounts;
+
+  // --- 6. Detect combo attacks — 3+ card tableau-to-tableau moves (#11) ---
+  const currentTableauLengths = state.tableau.map(t => t.length);
+  const isUndo = state.moves < prevMoves;
+  if (isUndo) {
+    // Undo: find any pile that shrank by 3+ (the target of the original combo)
+    for (let i = 0; i < 7; i++) {
+      const shrinkage = prevTableauLengths[i] - currentTableauLengths[i];
+      if (shrinkage >= 3) {
+        combat.healMonster(2 * shrinkage);
+      }
+    }
+  } else {
+    // Forward move: find any pile that grew by 3+ (combo target)
+    for (let i = 0; i < 7; i++) {
+      const growth = currentTableauLengths[i] - prevTableauLengths[i];
+      if (growth >= 3) {
+        combat.dealDamageToMonster(2 * growth, `Combo x${growth}!`);
+      }
+    }
+  }
+  prevTableauLengths = currentTableauLengths;
+  prevMoves = state.moves;
 });
