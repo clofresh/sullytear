@@ -26,6 +26,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate build info
+        run: node scripts/generate-build-info.js
+
       - name: Build with preview base path
         run: npx vite build --base /sullytear/pr-preview/pr-${{ github.event.number }}/
 
