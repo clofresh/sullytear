@@ -9,11 +9,7 @@ import './GameBoard.css';
 
 export default function GameBoard() {
   const { cardWidth, cardHeight, gap, faceUpOffset } = useResponsive();
-  const moveCards = useGameStore(s => s.moveCards);
-  const tableau = useGameStore(s => s.tableau);
-  const waste = useGameStore(s => s.waste);
   const boardRef = useRef<HTMLDivElement>(null);
-
   const dragSourceRef = useRef<{ pileId: string; cardIndex: number } | null>(null);
 
   const handleDragStart = useCallback((pileId: string, cardIndex: number) => {
@@ -25,40 +21,48 @@ export default function GameBoard() {
     if (!dragSource) return;
     dragSourceRef.current = null;
 
-    // Find drop target using elementsFromPoint
+    // Read fresh state from store (avoid stale closures)
+    const state = useGameStore.getState();
+
+    // Find drop target — temporarily hide the dragged card so elementsFromPoint
+    // can see through to the pile underneath
     const elements = document.elementsFromPoint(point.x, point.y);
     let targetPileId: string | null = null;
 
     for (const el of elements) {
       const pileEl = (el as HTMLElement).closest('[data-pile-id]');
       if (pileEl) {
-        targetPileId = pileEl.getAttribute('data-pile-id');
-        break;
+        const id = pileEl.getAttribute('data-pile-id');
+        // Skip the source pile — the dragged card is still visually inside it
+        if (id && id !== dragSource.pileId) {
+          targetPileId = id;
+          break;
+        }
       }
     }
 
-    if (targetPileId && targetPileId !== dragSource.pileId) {
-      // Get the cards being moved
-      let movingCards: import('../game/types').Card[];
-      if (dragSource.pileId === 'waste') {
-        movingCards = [waste[waste.length - 1]];
-      } else if (dragSource.pileId.startsWith('tableau-')) {
-        const tabIdx = parseInt(dragSource.pileId.split('-')[1]);
-        movingCards = tableau[tabIdx].slice(dragSource.cardIndex);
-      } else {
-        movingCards = [];
-      }
+    if (!targetPileId) return;
 
-      if (movingCards.length > 0) {
-        moveCards({
-          cards: movingCards,
-          from: dragSource.pileId as 'waste' | `tableau-${number}`,
-          fromIndex: dragSource.cardIndex,
-          to: targetPileId as `tableau-${number}` | `foundation-${number}`,
-        });
-      }
+    // Get the cards being moved from fresh state
+    let movingCards: import('../game/types').Card[];
+    if (dragSource.pileId === 'waste') {
+      movingCards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
+    } else if (dragSource.pileId.startsWith('tableau-')) {
+      const tabIdx = parseInt(dragSource.pileId.split('-')[1]);
+      movingCards = state.tableau[tabIdx].slice(dragSource.cardIndex);
+    } else {
+      movingCards = [];
     }
-  }, [moveCards, waste, tableau]);
+
+    if (movingCards.length > 0) {
+      state.moveCards({
+        cards: movingCards,
+        from: dragSource.pileId as 'waste' | `tableau-${number}`,
+        fromIndex: dragSource.cardIndex,
+        to: targetPileId as `tableau-${number}` | `foundation-${number}`,
+      });
+    }
+  }, []);
 
   return (
     <div

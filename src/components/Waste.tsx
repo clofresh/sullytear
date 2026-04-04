@@ -6,7 +6,7 @@ interface WasteProps {
   cardWidth: number;
   cardHeight: number;
   onDragStart?: (pileId: string, cardIndex: number) => void;
-  onDragEnd?: (point: { x: number; y: number }) => void;
+  onDragEnd?: (clientPoint: { x: number; y: number }) => void;
 }
 
 export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }: WasteProps) {
@@ -45,7 +45,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         onDoubleClick={handleDoubleClick}
         draggable
         onDragStart={() => onDragStart?.('waste', waste.length - 1)}
-        onDragEnd={(info) => onDragEnd?.(info.point)}
+        onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
       />
     </div>
   );

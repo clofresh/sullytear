@@ -12,7 +12,7 @@ interface CardProps {
   onDoubleClick?: () => void;
   draggable?: boolean;
   onDragStart?: () => void;
-  onDragEnd?: (info: { point: { x: number; y: number } }) => void;
+  onDragEnd?: (info: { point: { x: number; y: number }; event: PointerEvent }) => void;
   zIndex?: number;
 }
 
@@ -51,7 +51,7 @@ export default function Card({
       dragElastic={0}
       dragMomentum={false}
       onDragStart={onDragStart}
-      onDragEnd={(_e, info) => onDragEnd?.({ point: info.point })}
+      onDragEnd={(e, info) => onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent })}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
     >
       <div className="card-inner">

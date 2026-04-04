@@ -10,7 +10,7 @@ interface TableauProps {
   cardHeight: number;
   faceUpOffset: number;
   onDragStart?: (pileId: string, cardIndex: number) => void;
-  onDragEnd?: (point: { x: number; y: number }) => void;
+  onDragEnd?: (clientPoint: { x: number; y: number }) => void;
 }
 
 export default function Tableau({
@@ -79,7 +79,7 @@ export default function Tableau({
             onDoubleClick={() => handleDoubleClick(i)}
             draggable={card.faceUp}
             onDragStart={() => onDragStart?.(pileId, i)}
-            onDragEnd={(info) => onDragEnd?.(info.point)}
+            onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
           />
         );
       })}
