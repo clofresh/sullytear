@@ -87,7 +87,7 @@ export default function Tableau({
           // otherwise cards render behind face-down cards during animation
           setTimeout(() => {
             el.style.transition = '';
-            el.style.zIndex = '';
+            el.style.zIndex = `${idx}`;
           }, 500);
         }
       });
