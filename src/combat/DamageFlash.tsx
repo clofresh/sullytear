@@ -1,14 +1,31 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import type { CombatEvent } from '../game/combatStore';
 
 interface DamageFlashProps {
-  damage: number;
-  type: 'hero-attack' | 'monster-attack';
+  event: CombatEvent;
   eventId: number;
 }
 
-export default function DamageFlash({ damage, type, eventId }: DamageFlashProps) {
-  const color = type === 'hero-attack' ? '#ff4444' : '#ff8844';
-  const xDir = type === 'hero-attack' ? 10 : -10;
+function getStyle(event: CombatEvent) {
+  switch (event.type) {
+    case 'hero-attack':
+      return { color: '#ff4444', prefix: '-', xDir: 10 };
+    case 'monster-attack':
+      return { color: '#ff8844', prefix: '-', xDir: -10 };
+    case 'hero-heal':
+      return { color: '#44dd44', prefix: '+', xDir: 0 };
+    case 'poison':
+      return { color: '#aa44dd', prefix: '-', xDir: 10 };
+    case 'empower':
+      return { color: '#d4a843', prefix: '', xDir: 0 };
+  }
+}
+
+export default function DamageFlash({ event, eventId }: DamageFlashProps) {
+  const { color, prefix, xDir } = getStyle(event);
+  const text = event.label
+    ? `${prefix}${event.damage} ${event.label}`
+    : `${prefix}${event.damage}`;
 
   return (
     <AnimatePresence mode="popLayout">
@@ -22,17 +39,18 @@ export default function DamageFlash({ damage, type, eventId }: DamageFlashProps)
         style={{
           color,
           fontWeight: 'bold',
-          fontSize: '20px',
+          fontSize: '18px',
           textShadow: `0 0 8px ${color}, 0 0 4px rgba(0,0,0,0.8)`,
           position: 'absolute',
           top: '4px',
           pointerEvents: 'none',
-          left: type === 'hero-attack' ? undefined : '4px',
-          right: type === 'hero-attack' ? '4px' : undefined,
+          whiteSpace: 'nowrap',
+          left: event.type === 'hero-attack' || event.type === 'poison' ? undefined : '4px',
+          right: event.type === 'hero-attack' || event.type === 'poison' ? '4px' : undefined,
           zIndex: 10,
         }}
       >
-        -{damage}
+        {text}
       </motion.div>
     </AnimatePresence>
   );
