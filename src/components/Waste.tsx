@@ -23,6 +23,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   }
 
   const topCard = waste[waste.length - 1];
+  const secondCard = waste.length >= 2 ? waste[waste.length - 2] : null;
 
   const handleDoubleClick = () => {
     const fi = findFoundationIndex(topCard, foundations);
@@ -38,10 +39,18 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
 
   return (
     <div data-pile-id="waste" style={{ position: 'relative', width: cardWidth, height: cardHeight }}>
+      {secondCard && (
+        <Card
+          card={secondCard}
+          width={cardWidth}
+          height={cardHeight}
+        />
+      )}
       <Card
         card={topCard}
         width={cardWidth}
         height={cardHeight}
+        zIndex={1}
         onDoubleClick={handleDoubleClick}
         draggable
         onDragStart={() => onDragStart?.('waste', waste.length - 1)}
