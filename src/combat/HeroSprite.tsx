@@ -2,14 +2,25 @@ import { motion } from 'framer-motion';
 
 interface HeroSpriteProps {
   shake: boolean;
+  empowered: boolean;
 }
 
-export default function HeroSprite({ shake }: HeroSpriteProps) {
+export default function HeroSprite({ shake, empowered }: HeroSpriteProps) {
   return (
     <motion.div
       className="combat-sprite hero-sprite"
-      animate={shake ? { x: [0, -6, 6, -4, 4, -2, 2, 0] } : { x: 0 }}
+      animate={
+        shake
+          ? { x: [0, -6, 6, -4, 4, -2, 2, 0] }
+          : { x: 0 }
+      }
       transition={{ duration: 0.4 }}
+      style={{
+        boxShadow: empowered
+          ? '0 0 12px 4px rgba(212, 168, 67, 0.6), inset 0 0 8px rgba(212, 168, 67, 0.3)'
+          : undefined,
+        borderColor: empowered ? '#d4a843' : undefined,
+      }}
     >
       <svg viewBox="0 0 64 64" width="60" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
         {/* Shield */}
@@ -31,6 +42,18 @@ export default function HeroSprite({ shake }: HeroSpriteProps) {
         {/* Health cross on shield */}
         <rect x="22" y="33" width="4" height="10" rx="1" fill="#cc3333" />
         <rect x="19" y="36" width="10" height="4" rx="1" fill="#cc3333" />
+
+        {/* Empower glow on sword */}
+        {empowered && (
+          <motion.line
+            x1="40" y1="14" x2="40" y2="48"
+            stroke="#d4a843"
+            strokeWidth="4"
+            strokeLinecap="round"
+            animate={{ opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        )}
       </svg>
     </motion.div>
   );
