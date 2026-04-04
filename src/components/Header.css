@@ -54,3 +54,9 @@
   color: #e0e0e0;
   font-weight: 600;
 }
+
+.header-hash {
+  font-family: monospace;
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
