@@ -64,19 +64,18 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw the one card (stock → waste)
+      // Draw the one card (stock → waste) — 1 draw damage
       useGameStore.getState().drawFromStock();
-      // Now stock is empty — draw again to trigger cycle
+      // Now stock is empty — draw again to trigger cycle — monster attack damage
       useGameStore.getState().drawFromStock();
 
-      // Hero takes monster attack damage from the cycle
-      // No unused draw chip damage because the cycle resets waste (doesn't grow it)
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - attackDmg);
+      // Hero takes 1 (draw) + monsterAttackDamage (cycle)
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 1 - attackDmg);
     });
   });
 
-  describe('Unused stock draw chip damage (#13)', () => {
-    it('deals 1 damage when waste card is not used before next draw', () => {
+  describe('Stock draw damages hero', () => {
+    it('deals 1 damage per stock draw', () => {
       const initialHeroHp = useCombatStore.getState().heroMaxHp;
 
       setupGameState({
@@ -85,27 +84,52 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw first card
+      // Draw twice — each draw deals 1 damage
       useGameStore.getState().drawFromStock();
-      // Don't use it — draw again
       useGameStore.getState().drawFromStock();
 
-      // Hero should take 1 chip damage from unused draw
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 1);
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 2);
     });
+  });
 
-    it('does NOT deal chip damage when waste card was used', () => {
-      const initialHeroHp = useCombatStore.getState().heroMaxHp;
+  describe('Waste card to tableau damages monster', () => {
+    it('deals damage equal to card rank when waste card moved to tableau', () => {
+      const initialMonsterHp = useCombatStore.getState().monsterMaxHp;
 
+      // Waste has a 5♠, tableau-0 has a 6♥ (valid target: black 5 on red 6)
       setupGameState({
-        stock: [makeCard('clubs', 3, false), makeCard('clubs', 4, false)],
-        waste: [makeCard('hearts', 1)],
+        stock: [],
+        waste: [makeCard('spades', 5)],
+        tableau: [
+          [makeCard('hearts', 6)],
+          [], [], [], [], [], [],
+        ],
         foundations: [[], [], [], []],
-        tableau: [[], [], [], [], [], [], []],
         stockCycleCount: 0,
       });
 
-      // Move the waste card (Ace) to foundation
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'waste',
+        fromIndex: 0,
+        to: 'tableau-0',
+      });
+
+      // 5♠ rank = 5 damage
+      expect(useCombatStore.getState().monsterHp).toBe(initialMonsterHp - 5);
+    });
+
+    it('does NOT double-count when waste card goes to foundation', () => {
+      const initialMonsterHp = useCombatStore.getState().monsterMaxHp;
+
+      setupGameState({
+        stock: [],
+        waste: [makeCard('hearts', 1)],
+        tableau: [[], [], [], [], [], [], []],
+        foundations: [[], [], [], []],
+        stockCycleCount: 0,
+      });
+
       useGameStore.getState().moveCards({
         cards: [makeCard('hearts', 1)],
         from: 'waste',
@@ -113,12 +137,8 @@ describe('Combat Store', () => {
         to: 'foundation-0',
       });
 
-      // Now draw — previous waste card was consumed, so no chip damage
-      useGameStore.getState().drawFromStock();
-
-      // Hero should NOT have taken chip damage
-      // Ace heal +3 but capped at max, so still at max
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp);
+      // Only foundation damage (rank 1), no extra waste damage
+      expect(useCombatStore.getState().monsterHp).toBe(initialMonsterHp - 1);
     });
   });
 

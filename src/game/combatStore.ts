@@ -200,6 +200,7 @@ useGameStore.subscribe((state) => {
   }
 
   // --- 1. Detect foundation changes ---
+  const oldFoundationLengths = [...prevFoundationLengths];
   const currentLengths = state.foundations.map(f => f.length);
   for (let i = 0; i < 4; i++) {
     if (currentLengths[i] > prevFoundationLengths[i]) {
@@ -264,22 +265,32 @@ useGameStore.subscribe((state) => {
   }
   prevStockCycleCount = state.stockCycleCount;
 
-  // --- 3. Detect draws (waste grew) for unused draw chip damage + poison ticks ---
+  // --- 3. Detect draws and waste usage ---
   const currentWasteLength = state.waste.length;
-  if (currentWasteLength > prevWasteLength && state.stockCycleCount === prevStockCycleCount) {
-    // A draw happened (not a stock cycle reset which clears waste)
 
-    // Unused draw: if the previous top waste card is still in the waste, it wasn't used
-    if (prevWasteTopId !== null) {
-      const stillInWaste = state.waste.some(c => c.id === prevWasteTopId);
-      if (stillInWaste) {
-        combat.dealDamageToHero(1);
-      }
-    }
+  if (currentWasteLength > prevWasteLength && state.stockCycleCount === prevStockCycleCount) {
+    // A draw happened (waste grew, not a stock cycle reset)
+    // Every stock draw deals 1 damage to hero
+    combat.dealDamageToHero(1);
 
     // Poison tick on each draw
     if (useCombatStore.getState().poisonTurns > 0) {
       combat.applyPoison();
+    }
+  } else if (currentWasteLength < prevWasteLength && state.stockCycleCount === prevStockCycleCount) {
+    // Waste shrank without a stock cycle — a waste card was played
+    // If it went to a foundation, damage is already handled in section 1.
+    // If it went to a tableau, deal damage = card rank.
+    const foundationGrew = currentLengths.some((len, i) => len > oldFoundationLengths[i]);
+    if (!foundationGrew && prevWasteTopId !== null) {
+      // Card went to tableau — find it to get its rank
+      for (const col of state.tableau) {
+        const card = col.find(c => c.id === prevWasteTopId);
+        if (card) {
+          combat.dealDamageToMonster(card.rank, 'Waste!');
+          break;
+        }
+      }
     }
   }
   prevWasteLength = currentWasteLength;
