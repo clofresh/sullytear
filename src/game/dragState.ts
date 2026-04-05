@@ -5,6 +5,5 @@ export const dragState = {
   active: false,
   cards: [] as Card[],
   sourcePileId: '',
-  pointerX: 0,
-  pointerY: 0,
+  validTargets: new Set<string>(), // pile IDs that are currently valid drop targets
 };

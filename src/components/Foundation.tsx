@@ -23,14 +23,24 @@ export default function Foundation({ index, cardWidth, cardHeight }: FoundationP
     const check = () => {
       if (!dragState.active || dragState.cards.length !== 1) {
         setIsValidTarget(false);
+        dragState.validTargets.delete(pileId);
         return;
       }
-      setIsValidTarget(canMoveToFoundation(dragState.cards[0], pile));
+      const valid = canMoveToFoundation(dragState.cards[0], pile);
+      setIsValidTarget(valid);
+      if (valid) {
+        dragState.validTargets.add(pileId);
+      } else {
+        dragState.validTargets.delete(pileId);
+      }
     };
 
     const interval = setInterval(check, 100);
-    return () => clearInterval(interval);
-  }, [pile]);
+    return () => {
+      clearInterval(interval);
+      dragState.validTargets.delete(pileId);
+    };
+  }, [pile, pileId]);
 
   const moves = useGameStore(s => s.moves);
   useEffect(() => {

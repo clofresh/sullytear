@@ -35,16 +35,19 @@ export default function GameBoard() {
     if (!dragSource) return;
     dragSourceRef.current = null;
 
+    // Capture valid targets before clearing drag state
+    const validTargets = new Set(dragState.validTargets);
+
     // Clear shared drag state
     dragState.active = false;
     dragState.cards = [];
     dragState.sourcePileId = '';
+    dragState.validTargets.clear();
 
     // Read fresh state from store (avoid stale closures)
     const state = useGameStore.getState();
 
-    // Find drop target — temporarily hide the dragged card so elementsFromPoint
-    // can see through to the pile underneath
+    // Find drop target via elementsFromPoint
     const elements = document.elementsFromPoint(point.x, point.y);
     let targetPileId: string | null = null;
 
@@ -52,10 +55,27 @@ export default function GameBoard() {
       const pileEl = (el as HTMLElement).closest('[data-pile-id]');
       if (pileEl) {
         const id = pileEl.getAttribute('data-pile-id');
-        // Skip the source pile — the dragged card is still visually inside it
         if (id && id !== dragSource.pileId) {
           targetPileId = id;
           break;
+        }
+      }
+    }
+
+    // Fallback: if elementsFromPoint missed but we have valid targets,
+    // find the closest valid target pile to the pointer
+    if (!targetPileId && validTargets.size > 0) {
+      let bestDist = Infinity;
+      for (const vtId of validTargets) {
+        const el = document.querySelector(`[data-pile-id="${vtId}"]`);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(point.x - cx, point.y - cy);
+        if (dist < bestDist) {
+          bestDist = dist;
+          targetPileId = vtId;
         }
       }
     }

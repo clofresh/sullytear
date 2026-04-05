@@ -37,13 +37,23 @@ export default function Tableau({
     const check = () => {
       if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0) {
         setIsValidTarget(false);
+        dragState.validTargets.delete(pileId);
         return;
       }
-      setIsValidTarget(canMoveToTableau(dragState.cards, pile));
+      const valid = canMoveToTableau(dragState.cards, pile);
+      setIsValidTarget(valid);
+      if (valid) {
+        dragState.validTargets.add(pileId);
+      } else {
+        dragState.validTargets.delete(pileId);
+      }
     };
 
     const interval = setInterval(check, 100);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      dragState.validTargets.delete(pileId);
+    };
   }, [pile, pileId]);
 
   // Clear valid target when drag state changes (via store updates)
