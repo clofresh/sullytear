@@ -10,9 +10,9 @@ function makeCard(suit: Suit, rank: Rank, faceUp = true): Card {
 /**
  * Set game state without triggering combat events, then reset tracking.
  */
-function setupGameState(partial: Parameters<typeof useGameStore.setState>[0]) {
+function setupGameState(partial: Partial<Parameters<typeof useGameStore.setState>[0]>) {
   _withSuppressedEvents(() => {
-    useGameStore.setState(partial);
+    useGameStore.setState(partial as Parameters<typeof useGameStore.setState>[0]);
   });
 }
 
