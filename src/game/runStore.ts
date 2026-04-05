@@ -12,6 +12,7 @@ interface RunState {
   currentEncounterIndex: number;
   heroMaxHp: number;
   goldEarned: number;
+  lastGoldAwarded: number;
   runResult: 'none' | 'victory' | 'defeat';
 }
 
@@ -26,7 +27,7 @@ function pickEncounters(): MonsterDef[] {
   return MONSTER_ROSTER.slice(0, 5);
 }
 
-function calculateGold(monster: MonsterDef, difficulty: Difficulty, heroHp: number, heroMaxHp: number): number {
+export function calculateGold(monster: MonsterDef, difficulty: Difficulty, heroHp: number, heroMaxHp: number): number {
   const cfg = DIFFICULTY_CONFIG[difficulty];
   const base = monster.goldReward * cfg.goldMultiplier;
   const hpBonus = heroHp > heroMaxHp * 0.75 ? 1.25 : 1.0;
@@ -40,6 +41,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
   currentEncounterIndex: 0,
   heroMaxHp: 50,
   goldEarned: 0,
+  lastGoldAwarded: 0,
   runResult: 'none',
 
   startRun: (difficulty: Difficulty) => {
@@ -54,6 +56,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       currentEncounterIndex: 0,
       heroMaxHp,
       goldEarned: 0,
+      lastGoldAwarded: 0,
       runResult: 'none',
     });
 
@@ -83,6 +86,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       set({
         currentEncounterIndex: nextIndex,
         goldEarned: newGoldEarned,
+        lastGoldAwarded: gold,
       });
       get().endRun('victory');
       return;
@@ -95,6 +99,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     set({
       currentEncounterIndex: nextIndex,
       goldEarned: newGoldEarned,
+      lastGoldAwarded: gold,
     });
 
     _withSuppressedEvents(() => {

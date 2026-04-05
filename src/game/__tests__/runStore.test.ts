@@ -11,6 +11,7 @@ function resetAll() {
     currentEncounterIndex: 0,
     heroMaxHp: 50,
     goldEarned: 0,
+    lastGoldAwarded: 0,
     runResult: 'none',
   });
   useCombatStore.getState().resetCombat();

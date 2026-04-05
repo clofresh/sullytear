@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCombatStore } from '../game/combatStore';
-import { useRunStore } from '../game/runStore';
+import { useRunStore, calculateGold } from '../game/runStore';
 import './CombatOverlay.css';
 
 export default function CombatOverlay() {
@@ -13,8 +13,14 @@ export default function CombatOverlay() {
   const advanceEncounter = useRunStore(s => s.advanceEncounter);
   const endRun = useRunStore(s => s.endRun);
 
+  const heroHp = useCombatStore(s => s.heroHp);
+  const heroMaxHp = useCombatStore(s => s.heroMaxHp);
+  const difficulty = useRunStore(s => s.difficulty);
+
   const isFinalEncounter = currentIndex >= encounters.length - 1;
   const encounterProgress = `${currentIndex + 1} / ${encounters.length}`;
+  const currentMonster = encounters[currentIndex];
+  const monsterGold = currentMonster ? calculateGold(currentMonster, difficulty, heroHp, heroMaxHp) : 0;
 
   return (
     <AnimatePresence>
@@ -35,6 +41,7 @@ export default function CombatOverlay() {
             <div className="combat-overlay-icon">&#9876;</div>
             <h2 className="combat-overlay-title victory-title">{monsterName} Defeated!</h2>
             <div className="combat-overlay-progress">Fight {encounterProgress}</div>
+            <div className="combat-overlay-gold">&#9733; +{monsterGold} Gold</div>
             <p className="combat-overlay-subtitle">Prepare for the next challenger.</p>
             <button className="combat-overlay-btn victory-btn" onClick={advanceEncounter}>
               Next Encounter
