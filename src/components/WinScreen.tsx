@@ -1,11 +1,16 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../game/store';
+import { useRunStore } from '../game/runStore';
 import './WinScreen.css';
 
 export default function WinScreen() {
   const isWon = useGameStore(s => s.isWon);
   const moves = useGameStore(s => s.moves);
   const newGame = useGameStore(s => s.newGame);
+  const isRunActive = useRunStore(s => s.isRunActive);
+
+  // During gauntlet runs, combat overlay handles end-of-encounter
+  if (isRunActive) return null;
 
   return (
     <AnimatePresence>

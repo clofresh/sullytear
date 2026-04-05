@@ -3,9 +3,11 @@ import { useGameStore } from './store';
 
 export interface EncounterConfig {
   monsterName: string;
+  monsterId?: string;
   monsterMaxHp: number;
   monsterAttackDamage: number;
   heroMaxHp: number;
+  heroStartHp?: number;
 }
 
 const DEFAULT_ENCOUNTER: EncounterConfig = {
@@ -27,6 +29,7 @@ interface CombatState {
   monsterHp: number;
   monsterMaxHp: number;
   monsterName: string;
+  monsterId: string;
   monsterAttackDamage: number;
   isActive: boolean;
   combatResult: 'none' | 'victory' | 'defeat';
@@ -54,6 +57,7 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
   monsterHp: DEFAULT_ENCOUNTER.monsterMaxHp,
   monsterMaxHp: DEFAULT_ENCOUNTER.monsterMaxHp,
   monsterName: DEFAULT_ENCOUNTER.monsterName,
+  monsterId: 'dragon',
   monsterAttackDamage: DEFAULT_ENCOUNTER.monsterAttackDamage,
   isActive: true,
   combatResult: 'none',
@@ -64,11 +68,12 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
 
   startCombat: (config = DEFAULT_ENCOUNTER) => {
     set({
-      heroHp: config.heroMaxHp,
+      heroHp: config.heroStartHp ?? config.heroMaxHp,
       heroMaxHp: config.heroMaxHp,
       monsterHp: config.monsterMaxHp,
       monsterMaxHp: config.monsterMaxHp,
       monsterName: config.monsterName,
+      monsterId: config.monsterId ?? 'dragon',
       monsterAttackDamage: config.monsterAttackDamage,
       isActive: true,
       combatResult: 'none',
