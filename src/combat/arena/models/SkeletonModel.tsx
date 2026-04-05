@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import CardSurfaceMaterial from '../CardSurfaceMaterial';
 
 export default function SkeletonModel() {
   const groupRef = useRef<THREE.Group>(null!);
@@ -32,77 +31,76 @@ export default function SkeletonModel() {
       {/* Skull */}
       <mesh position={[0, 0.85, 0]}>
         <sphereGeometry args={[0.25, 12, 10]} />
-        <CardSurfaceMaterial color={bone} cardDensity={10} gapSize={0.07} />
+        <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
-      {/* Eye sockets — glowing */}
+      {/* Eye sockets — dark inset */}
       <mesh position={[-0.08, 0.9, 0.2]}>
         <sphereGeometry args={[0.06, 8, 8]} />
-        <CardSurfaceMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} cardDensity={4} gapSize={0.04} />
+        <meshStandardMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} />
       </mesh>
       <mesh position={[0.08, 0.9, 0.2]}>
         <sphereGeometry args={[0.06, 8, 8]} />
-        <CardSurfaceMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} cardDensity={4} gapSize={0.04} />
+        <meshStandardMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} />
       </mesh>
 
       {/* Jaw */}
       <mesh ref={jawRef} position={[0, 0.73, 0.08]}>
         <boxGeometry args={[0.18, 0.06, 0.15]} />
-        <CardSurfaceMaterial color={bone} cardDensity={4} gapSize={0.06} />
+        <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Spine */}
       <mesh position={[0, 0.4, 0]}>
         <cylinderGeometry args={[0.04, 0.04, 0.6, 6]} />
-        <CardSurfaceMaterial color={bone} cardDensity={6} gapSize={0.08} />
+        <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Ribcage */}
       {[-0.12, 0, 0.12].map((offset, i) => (
         <mesh key={i} position={[0, 0.4 + offset, 0]}>
           <torusGeometry args={[0.15, 0.02, 4, 12, Math.PI]} />
-          <CardSurfaceMaterial color={bone} cardDensity={8} gapSize={0.06} />
+          <meshStandardMaterial color={bone} roughness={0.8} />
         </mesh>
       ))}
 
       {/* Left arm */}
       <mesh position={[-0.25, 0.35, 0]} rotation={[0, 0, -0.5]}>
         <cylinderGeometry args={[0.025, 0.025, 0.5, 4]} />
-        <CardSurfaceMaterial color={bone} cardDensity={4} gapSize={0.06} />
+        <meshStandardMaterial color={bone} />
       </mesh>
 
       {/* Right arm + sword */}
       <group ref={swordRef} position={[0.25, 0.35, 0]}>
         <mesh rotation={[0, 0, 0.5]}>
           <cylinderGeometry args={[0.025, 0.025, 0.5, 4]} />
-          <CardSurfaceMaterial color={bone} cardDensity={4} gapSize={0.06} />
+          <meshStandardMaterial color={bone} />
         </mesh>
-        {/* Sword blade */}
+        {/* Sword */}
         <mesh position={[0.2, 0.35, 0]}>
           <boxGeometry args={[0.04, 0.6, 0.02]} />
-          <CardSurfaceMaterial color="#aaaaaa" cardDensity={6} gapSize={0.05} />
+          <meshStandardMaterial color="#aaaaaa" metalness={0.9} roughness={0.1} />
         </mesh>
-        {/* Sword guard */}
         <mesh position={[0.2, 0.05, 0]}>
           <boxGeometry args={[0.15, 0.04, 0.03]} />
-          <CardSurfaceMaterial color="#8B6914" cardDensity={4} gapSize={0.04} />
+          <meshStandardMaterial color="#8B6914" metalness={0.6} roughness={0.4} />
         </mesh>
       </group>
 
       {/* Pelvis */}
       <mesh position={[0, 0.05, 0]}>
         <boxGeometry args={[0.25, 0.1, 0.12]} />
-        <CardSurfaceMaterial color={bone} cardDensity={6} gapSize={0.06} />
+        <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Legs */}
       <mesh position={[-0.08, -0.25, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
-        <CardSurfaceMaterial color={bone} cardDensity={4} gapSize={0.06} />
+        <meshStandardMaterial color={bone} />
       </mesh>
       <mesh position={[0.08, -0.25, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
-        <CardSurfaceMaterial color={bone} cardDensity={4} gapSize={0.06} />
+        <meshStandardMaterial color={bone} />
       </mesh>
     </group>
   );
