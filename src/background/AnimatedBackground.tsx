@@ -1,4 +1,5 @@
 import { Canvas } from '@react-three/fiber';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import Particles from './Particles';
 import BurstParticles from './BurstParticles';
 import BackgroundGradient from './BackgroundGradient';
@@ -12,6 +13,14 @@ function Scene() {
       <BackgroundGradient combatState={combatState} />
       <Particles combatState={combatState} />
       <BurstParticles effectQueue={effectQueue} />
+      <EffectComposer>
+        <Bloom
+          luminanceThreshold={0.2}
+          luminanceSmoothing={0.9}
+          intensity={1.5}
+          mipmapBlur
+        />
+      </EffectComposer>
     </>
   );
 }
