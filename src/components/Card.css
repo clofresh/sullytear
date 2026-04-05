@@ -131,6 +131,28 @@
   color: var(--card-black);
 }
 
+/* Valid drop target glow - pulsating */
+.valid-drop-target .card .card-face,
+.valid-drop-target .card-placeholder {
+  animation: target-pulse 1s ease-in-out infinite;
+}
+
+@keyframes target-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 6px 1px rgba(212, 168, 67, 0.4),
+      0 0 16px 4px rgba(212, 168, 67, 0.2);
+    border-color: rgba(212, 168, 67, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 10px 3px rgba(212, 168, 67, 0.7),
+      0 0 24px 8px rgba(212, 168, 67, 0.35),
+      0 0 40px 12px rgba(212, 168, 67, 0.15);
+    border-color: rgba(212, 168, 67, 0.8);
+  }
+}
+
 .card-placeholder {
   position: absolute;
   border-radius: 6px;

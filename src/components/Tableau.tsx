@@ -1,8 +1,9 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
-import { findFoundationIndex } from '../game/rules';
+import { findFoundationIndex, canMoveToTableau } from '../game/rules';
 import { FACE_DOWN_OFFSET } from '../utils/constants';
+import { dragState } from '../game/dragState';
 import type { PileId } from '../game/types';
 
 interface TableauProps {
@@ -27,6 +28,37 @@ export default function Tableau({
   const moveCards = useGameStore(s => s.moveCards);
   const pileId = `tableau-${index}` as PileId;
   const dragIdxRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragSource, setIsDragSource] = useState(false);
+  const [isValidTarget, setIsValidTarget] = useState(false);
+
+  // Poll for valid drop target status during drag
+  useEffect(() => {
+    if (!dragState.active) {
+      setIsValidTarget(false);
+      return;
+    }
+
+    const check = () => {
+      if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0) {
+        setIsValidTarget(false);
+        return;
+      }
+
+      // Check if dragged cards can be placed on this pile
+      setIsValidTarget(canMoveToTableau(dragState.cards, pile));
+    };
+
+    check();
+    const interval = setInterval(check, 100);
+    return () => clearInterval(interval);
+  }, [pile, pileId]);
+
+  // Clear valid target when drag state changes (via store updates)
+  const moves = useGameStore(s => s.moves);
+  useEffect(() => {
+    setIsValidTarget(false);
+  }, [moves]);
 
   const handleDoubleClick = (cardIndex: number) => {
     if (cardIndex !== pile.length - 1) return;
@@ -45,8 +77,10 @@ export default function Tableau({
 
   const handleLocalDragStart = useCallback((i: number) => {
     dragIdxRef.current = i;
+    setIsDragSource(true);
+
     // Boost zIndex on drag source and all follower wrappers
-    const container = document.querySelector(`[data-pile-id="${pileId}"]`);
+    const container = containerRef.current;
     if (container) {
       container.querySelectorAll<HTMLElement>('[data-card-index]').forEach(el => {
         const idx = parseInt(el.getAttribute('data-card-index')!);
@@ -60,7 +94,7 @@ export default function Tableau({
 
   const handleDrag = useCallback((_event: PointerEvent, info: { offset: { x: number; y: number } }) => {
     if (dragIdxRef.current === null) return;
-    const container = document.querySelector(`[data-pile-id="${pileId}"]`);
+    const container = containerRef.current;
     if (!container) return;
 
     container.querySelectorAll<HTMLElement>('[data-card-index]').forEach(el => {
@@ -70,10 +104,10 @@ export default function Tableau({
         el.style.transition = 'none';
       }
     });
-  }, [pileId]);
+  }, []);
 
   const handleLocalDragEnd = useCallback((info: { event: PointerEvent }) => {
-    const container = document.querySelector(`[data-pile-id="${pileId}"]`);
+    const container = containerRef.current;
     if (container && dragIdxRef.current !== null) {
       container.querySelectorAll<HTMLElement>('[data-card-index]').forEach(el => {
         const idx = parseInt(el.getAttribute('data-card-index')!);
@@ -93,8 +127,10 @@ export default function Tableau({
       });
     }
     dragIdxRef.current = null;
+    setIsDragSource(false);
+    setIsValidTarget(false);
     onDragEnd?.({ x: info.event.clientX, y: info.event.clientY });
-  }, [pileId, onDragEnd]);
+  }, [onDragEnd]);
 
   // Calculate total height for the pile container
   let totalOffset = 0;
@@ -106,12 +142,14 @@ export default function Tableau({
 
   return (
     <div
+      ref={containerRef}
       data-pile-id={pileId}
       style={{
         position: 'relative',
         width: cardWidth,
         height: pile.length === 0 ? cardHeight : totalOffset + cardHeight,
         minHeight: cardHeight,
+        zIndex: isDragSource ? 1000 : undefined,
       }}
     >
       {pile.length === 0 && (
@@ -123,10 +161,13 @@ export default function Tableau({
           top += pile[j].faceUp ? faceUpOffset : FACE_DOWN_OFFSET;
         }
 
+        const isTopCard = i === pile.length - 1;
+
         return (
           <div
             key={card.id}
             data-card-index={i}
+            className={isTopCard && isValidTarget ? 'valid-drop-target' : undefined}
             style={{
               position: 'absolute',
               top,

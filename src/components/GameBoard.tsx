@@ -5,6 +5,7 @@ import Foundation from './Foundation';
 import Tableau from './Tableau';
 import { useGameStore } from '../game/store';
 import { useResponsive } from '../hooks/useResponsive';
+import { dragState } from '../game/dragState';
 import './GameBoard.css';
 
 export default function GameBoard() {
@@ -14,12 +15,30 @@ export default function GameBoard() {
 
   const handleDragStart = useCallback((pileId: string, cardIndex: number) => {
     dragSourceRef.current = { pileId, cardIndex };
+
+    // Populate shared drag state for valid-target highlighting
+    const state = useGameStore.getState();
+    let cards: import('../game/types').Card[] = [];
+    if (pileId === 'waste') {
+      cards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
+    } else if (pileId.startsWith('tableau-')) {
+      const tabIdx = parseInt(pileId.split('-')[1]);
+      cards = state.tableau[tabIdx].slice(cardIndex);
+    }
+    dragState.active = true;
+    dragState.cards = cards;
+    dragState.sourcePileId = pileId;
   }, []);
 
   const handleDragEnd = useCallback((point: { x: number; y: number }) => {
     const dragSource = dragSourceRef.current;
     if (!dragSource) return;
     dragSourceRef.current = null;
+
+    // Clear shared drag state
+    dragState.active = false;
+    dragState.cards = [];
+    dragState.sourcePileId = '';
 
     // Read fresh state from store (avoid stale closures)
     const state = useGameStore.getState();
