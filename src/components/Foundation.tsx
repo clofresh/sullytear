@@ -20,11 +20,6 @@ export default function Foundation({ index, cardWidth, cardHeight }: FoundationP
 
   // Poll for valid drop target status during drag
   useEffect(() => {
-    if (!dragState.active) {
-      setIsValidTarget(false);
-      return;
-    }
-
     const check = () => {
       if (!dragState.active || dragState.cards.length !== 1) {
         setIsValidTarget(false);
@@ -33,7 +28,6 @@ export default function Foundation({ index, cardWidth, cardHeight }: FoundationP
       setIsValidTarget(canMoveToFoundation(dragState.cards[0], pile));
     };
 
-    check();
     const interval = setInterval(check, 100);
     return () => clearInterval(interval);
   }, [pile]);

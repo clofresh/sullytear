@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
@@ -14,6 +15,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   const waste = useGameStore(s => s.waste);
   const foundations = useGameStore(s => s.foundations);
   const moveCards = useGameStore(s => s.moveCards);
+  const [isDragging, setIsDragging] = useState(false);
 
   if (waste.length === 0) {
     return (
@@ -39,7 +41,15 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   };
 
   return (
-    <div data-pile-id="waste" style={{ position: 'relative', width: cardWidth, height: cardHeight }}>
+    <div
+      data-pile-id="waste"
+      style={{
+        position: 'relative',
+        width: cardWidth,
+        height: cardHeight,
+        zIndex: isDragging ? 1000 : undefined,
+      }}
+    >
       {secondCard && (
         <Card
           card={secondCard}
@@ -62,8 +72,8 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
             zIndex={1}
             onDoubleClick={handleDoubleClick}
             draggable
-            onDragStart={() => onDragStart?.('waste', waste.length - 1)}
-            onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
+            onDragStart={() => { setIsDragging(true); onDragStart?.('waste', waste.length - 1); }}
+            onDragEnd={(info) => { setIsDragging(false); onDragEnd?.({ x: info.event.clientX, y: info.event.clientY }); }}
           />
         </motion.div>
       </AnimatePresence>

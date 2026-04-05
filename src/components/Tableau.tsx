@@ -34,22 +34,14 @@ export default function Tableau({
 
   // Poll for valid drop target status during drag
   useEffect(() => {
-    if (!dragState.active) {
-      setIsValidTarget(false);
-      return;
-    }
-
     const check = () => {
       if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0) {
         setIsValidTarget(false);
         return;
       }
-
-      // Check if dragged cards can be placed on this pile
       setIsValidTarget(canMoveToTableau(dragState.cards, pile));
     };
 
-    check();
     const interval = setInterval(check, 100);
     return () => clearInterval(interval);
   }, [pile, pileId]);
