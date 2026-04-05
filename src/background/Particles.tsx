@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { CombatVisualState } from './useCombatEffects';
 
-const CARD_COUNT = 200;
+const CARD_COUNT = 400;
 
 // Card aspect ratio (~poker card proportions)
 const CARD_W = 0.12;
