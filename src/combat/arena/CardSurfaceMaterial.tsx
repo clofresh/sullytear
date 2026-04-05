@@ -113,9 +113,17 @@ const cardFragmentShader = /* glsl */ `
     // Card-local coords centered at cell middle
     vec2 cardP = cellUv - 0.5;
 
-    // Per-card slow rotation
-    float rotAngle = (r1 - 0.5) * 0.4 + sin(uTime * (0.3 + r2 * 0.5) + r1 * 6.28) * 0.12;
-    cardP = rot2(rotAngle) * cardP;
+    // Per-card spin: continuous rotation in Z + 3D flip around Y
+    float spinSpeed = 0.4 + r2 * 0.6;  // varied spin speeds
+    float spinAngle = uTime * spinSpeed + r1 * 6.28;
+    cardP = rot2(spinAngle) * cardP;
+
+    // 3D flip effect: simulate Y-axis rotation via X-axis foreshortening
+    float flipSpeed = 0.3 + r3 * 0.5;
+    float flipAngle = uTime * flipSpeed + r2 * 6.28;
+    float flipCos = cos(flipAngle);
+    cardP.x *= abs(flipCos) * 0.6 + 0.4;  // squeeze X to simulate perspective
+    bool showBack = flipCos < 0.0;
 
     // Card shape — rounded rect with gap
     float cardAspect = 0.7;  // width/height ratio of a playing card
@@ -141,29 +149,48 @@ const cardFragmentShader = /* glsl */ `
     // Determine suit (from random)
     float suit = floor(r1 * 4.0);
 
-    // Card face rendering
-    // Base: off-white card
-    vec3 cardFace = vec3(0.92, 0.90, 0.86);
+    vec3 tintedColor;
 
-    // Border
-    float borderDist = sdRoundedBox(cardP, cardSize - 0.03, 0.04);
-    float borderLine = smoothstep(-0.015, -0.005, borderDist) * (1.0 - smoothstep(-0.005, 0.005, borderDist));
+    if (!showBack) {
+      // === FRONT FACE ===
+      vec3 cardFace = vec3(0.92, 0.90, 0.86);
 
-    // Suit symbol
-    vec2 suitP = cardP * 2.8;
-    float suitDist = getSuitSDF(suitP, suit);
-    float suitMask = 1.0 - smoothstep(-0.02, 0.02, suitDist);
+      // Border
+      float borderDist = sdRoundedBox(cardP, cardSize - 0.03, 0.04);
+      float borderLine = smoothstep(-0.015, -0.005, borderDist) * (1.0 - smoothstep(-0.005, 0.005, borderDist));
 
-    // Red for hearts/diamonds, dark for clubs/spades
-    vec3 suitColor = suit < 1.5 ? vec3(0.8, 0.1, 0.1) : vec3(0.15, 0.15, 0.15);
+      // Suit symbol
+      vec2 suitP = cardP * 2.8;
+      float suitDist = getSuitSDF(suitP, suit);
+      float suitMask = 1.0 - smoothstep(-0.02, 0.02, suitDist);
 
-    // Compose card face
-    vec3 faceColor = cardFace;
-    faceColor = mix(faceColor, vec3(0.65, 0.6, 0.55), borderLine * 0.5);
-    faceColor = mix(faceColor, suitColor, suitMask);
+      vec3 suitColor = suit < 1.5 ? vec3(0.8, 0.1, 0.1) : vec3(0.15, 0.15, 0.15);
 
-    // Tint the whole card with the monster's color
-    vec3 tintedColor = mix(faceColor, uColor, 0.35);
+      vec3 faceColor = cardFace;
+      faceColor = mix(faceColor, vec3(0.65, 0.6, 0.55), borderLine * 0.5);
+      faceColor = mix(faceColor, suitColor, suitMask);
+
+      tintedColor = mix(faceColor, uColor, 0.35);
+    } else {
+      // === BACK FACE ===
+      vec3 backBase = mix(vec3(0.1, 0.22, 0.36), uColor, 0.4);
+
+      // Crosshatch pattern
+      float pattern = sin(cardP.x * 24.0) * sin(cardP.y * 24.0);
+      backBase += pattern * 0.08;
+
+      // Inner border
+      float innerDist = sdRoundedBox(cardP, cardSize - 0.05, 0.04);
+      float innerBorder = smoothstep(-0.015, -0.005, innerDist) * (1.0 - smoothstep(-0.005, 0.005, innerDist));
+      backBase += innerBorder * 0.2;
+
+      // Center diamond ornament
+      float diamond = sdDiamond(cardP * 3.0);
+      float diamondMask = 1.0 - smoothstep(-0.02, 0.02, diamond);
+      backBase = mix(backBase, uColor * 1.3, diamondMask * 0.4);
+
+      tintedColor = backBase;
+    }
 
     // Slight per-card brightness variation
     float cardBrightness = 0.85 + r3 * 0.3;
