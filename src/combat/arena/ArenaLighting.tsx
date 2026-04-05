@@ -1,8 +1,8 @@
 export default function ArenaLighting() {
   return (
     <>
-      {/* Key light — warm from upper-right */}
-      <directionalLight position={[3, 4, 2]} intensity={1.2} color="#ffe8cc" />
+      {/* Key light — warm from above, centered for both characters */}
+      <directionalLight position={[0, 5, 3]} intensity={1.2} color="#ffe8cc" />
       {/* Fill light — cool from left */}
       <directionalLight position={[-2, 2, 1]} intensity={0.4} color="#aaccff" />
       {/* Rim light — from behind for silhouette */}

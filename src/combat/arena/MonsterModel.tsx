@@ -45,9 +45,9 @@ export default function MonsterModel({ monsterId }: Props) {
     if (hitTime.current > 0) {
       hitTime.current -= delta;
       const intensity = hitTime.current * 8;
-      group.position.x = Math.sin(hitTime.current * 60) * intensity * 0.05;
+      group.position.z = Math.sin(hitTime.current * 60) * intensity * 0.05;
     } else {
-      group.position.x = 0;
+      group.position.z = 0;
     }
   });
 
