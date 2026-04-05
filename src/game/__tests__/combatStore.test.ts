@@ -540,4 +540,50 @@ describe('Combat Store', () => {
       expect(state.combatResult).toBe('none');
     });
   });
+
+  describe('EncounterConfig extensions', () => {
+    it('startCombat with heroStartHp sets heroHp to that value', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+        heroStartHp: 30,
+      });
+      const s = useCombatStore.getState();
+      expect(s.heroHp).toBe(30);
+      expect(s.heroMaxHp).toBe(50);
+    });
+
+    it('startCombat without heroStartHp defaults to heroMaxHp', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+      });
+      expect(useCombatStore.getState().heroHp).toBe(50);
+    });
+
+    it('startCombat with monsterId sets monsterId in state', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterId: 'slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+      });
+      expect(useCombatStore.getState().monsterId).toBe('slime');
+    });
+
+    it('startCombat without monsterId defaults to dragon', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Dragon',
+        monsterMaxHp: 120,
+        monsterAttackDamage: 12,
+        heroMaxHp: 50,
+      });
+      expect(useCombatStore.getState().monsterId).toBe('dragon');
+    });
+  });
 });

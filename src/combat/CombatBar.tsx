@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useCombatStore } from '../game/combatStore';
+import { useRunStore } from '../game/runStore';
 import { portraitPositions } from '../game/portraitPositions';
 import HealthBar from './HealthBar';
 import HeroSprite from './HeroSprite';
@@ -39,6 +40,9 @@ export default function CombatBar() {
   const isActive = useCombatStore(s => s.isActive);
   const empowered = useCombatStore(s => s.empowered);
   const poisonTurns = useCombatStore(s => s.poisonTurns);
+  const monsterId = useCombatStore(s => s.monsterId);
+  const currentIndex = useRunStore(s => s.currentEncounterIndex);
+  const encounters = useRunStore(s => s.encounters);
 
   if (!isActive) return null;
 
@@ -65,7 +69,12 @@ export default function CombatBar() {
         </div>
 
         {/* VS divider */}
-        <div className="combat-vs">VS</div>
+        <div className="combat-vs">
+          <span>VS</span>
+          {encounters.length > 0 && (
+            <span className="combat-progress">{currentIndex + 1}/{encounters.length}</span>
+          )}
+        </div>
 
         {/* Monster side */}
         <div className="combatant monster-side">
@@ -76,7 +85,7 @@ export default function CombatBar() {
             <div className="combatant-name">{monsterName}</div>
             <HealthBar current={monsterHp} max={monsterMaxHp} side="right" />
           </div>
-          <div ref={monsterRef}><MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} /></div>
+          <div ref={monsterRef}><MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} monsterId={monsterId} /></div>
         </div>
       </div>
     </div>

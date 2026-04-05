@@ -1,0 +1,126 @@
+.run-start-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+  background: radial-gradient(ellipse at center, rgba(10, 20, 40, 0.96) 0%, rgba(5, 10, 20, 0.99) 100%);
+}
+
+.run-start-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 420px;
+}
+
+.run-start-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(212, 168, 67, 0.4);
+  margin-bottom: 8px;
+}
+
+.run-start-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 32px;
+}
+
+.run-start-gold {
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+
+.run-start-gold-icon {
+  margin-right: 6px;
+}
+
+.difficulty-section {
+  margin-bottom: 28px;
+}
+
+.difficulty-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.difficulty-btn {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
+}
+
+.difficulty-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.difficulty-btn.selected {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(212, 168, 67, 0.1);
+}
+
+.difficulty-btn.selected.hard {
+  border-color: #cc6633;
+  color: #cc6633;
+  background: rgba(204, 102, 51, 0.1);
+}
+
+.difficulty-btn.selected.nightmare {
+  border-color: #cc3333;
+  color: #cc3333;
+  background: rgba(204, 51, 51, 0.1);
+}
+
+.start-run-btn {
+  padding: 14px 48px;
+  font-size: 18px;
+  font-weight: 700;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(212, 168, 67, 0.1);
+  color: var(--gold);
+  transition: background 0.2s, transform 0.1s;
+  margin-bottom: 24px;
+}
+
+.start-run-btn:hover {
+  background: rgba(212, 168, 67, 0.2);
+}
+
+.start-run-btn:active {
+  transform: scale(0.96);
+}
+
+.run-start-stats {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.run-start-stat-value {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}

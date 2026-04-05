@@ -55,6 +55,11 @@
   font-weight: 600;
 }
 
+.header-gold {
+  color: var(--gold);
+  font-weight: 600;
+}
+
 .header-hash {
   font-family: monospace;
   font-size: 0.7rem;
