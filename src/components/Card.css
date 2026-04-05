@@ -7,7 +7,16 @@
 }
 
 .card.dragging {
-  filter: drop-shadow(0 0 12px rgba(212, 168, 67, 0.8)) drop-shadow(0 0 24px rgba(212, 168, 67, 0.4));
+  filter: none;
+}
+
+.card.dragging .card-face {
+  box-shadow:
+    0 0 8px 2px rgba(212, 168, 67, 0.9),
+    0 0 20px 6px rgba(212, 168, 67, 0.5),
+    0 0 40px 12px rgba(212, 168, 67, 0.25),
+    0 0 80px 24px rgba(212, 168, 67, 0.1);
+  border-color: rgba(212, 168, 67, 0.8);
 }
 
 .card-inner {
