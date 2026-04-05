@@ -61,6 +61,7 @@ export default function BackgroundGradient({ combatState }: Props) {
     mat.uniforms.uTime.value += delta;
 
     const cs = combatState.current;
+    if (!cs) return;
 
     // Determine target colors based on combat state priority
     if (cs.combatResult === 'victory' || cs.isWon) {

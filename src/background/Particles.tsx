@@ -105,6 +105,7 @@ export default function Particles({ combatState }: Props) {
     const posAttr = meshRef.current.geometry.attributes.position;
     const pos = posAttr.array as Float32Array;
     const cs = combatState.current;
+    if (!cs) return;
     const isWon = cs.isWon;
     const speed = isWon || cs.combatResult === 'victory' ? 5 : cs.combatResult === 'defeat' ? 0.3 : 1;
 

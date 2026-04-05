@@ -221,6 +221,7 @@ export default function BurstParticles({ effectQueue }: Props) {
 
     // Process queued events
     const queue = effectQueue.current;
+    if (!queue) return;
     while (queue.length > 0) {
       const ev = queue.shift()!;
       processEvent(ev);
