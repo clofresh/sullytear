@@ -35,7 +35,8 @@ const fragmentShader = /* glsl */ `
     float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
     alpha *= vAlpha * 0.6;
     if (alpha < 0.01) discard;
-    gl_FragColor = vec4(vColor, alpha);
+    // Boost color above 1.0 for HDR bloom pickup
+    gl_FragColor = vec4(vColor * 2.0, alpha);
   }
 `;
 

@@ -15,9 +15,9 @@ function Scene() {
       <BurstParticles effectQueue={effectQueue} />
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.2}
+          luminanceThreshold={0}
           luminanceSmoothing={0.9}
-          intensity={1.5}
+          intensity={2.0}
           mipmapBlur
         />
       </EffectComposer>
