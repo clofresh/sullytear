@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import CardSurfaceMaterial from '../CardSurfaceMaterial';
 
 export default function GoblinModel() {
   const groupRef = useRef<THREE.Group>(null!);
@@ -26,70 +27,70 @@ export default function GoblinModel() {
       {/* Body */}
       <mesh position={[0, 0, 0]}>
         <capsuleGeometry args={[0.3, 0.5, 8, 16]} />
-        <meshStandardMaterial color={green} roughness={0.7} />
+        <CardSurfaceMaterial color={green} cardDensity={10} gapSize={0.07} />
       </mesh>
 
       {/* Head */}
       <mesh position={[0, 0.7, 0]}>
         <sphereGeometry args={[0.3, 16, 12]} />
-        <meshStandardMaterial color={green} roughness={0.6} />
+        <CardSurfaceMaterial color={green} cardDensity={10} gapSize={0.07} />
       </mesh>
 
       {/* Left ear */}
       <mesh position={[-0.35, 0.9, 0]} rotation={[0, 0, -0.5]}>
         <coneGeometry args={[0.08, 0.35, 6]} />
-        <meshStandardMaterial color={green} />
+        <CardSurfaceMaterial color={green} cardDensity={6} gapSize={0.06} />
       </mesh>
 
       {/* Right ear */}
       <mesh position={[0.35, 0.9, 0]} rotation={[0, 0, 0.5]}>
         <coneGeometry args={[0.08, 0.35, 6]} />
-        <meshStandardMaterial color={green} />
+        <CardSurfaceMaterial color={green} cardDensity={6} gapSize={0.06} />
       </mesh>
 
       {/* Eyes */}
       <mesh position={[-0.1, 0.75, 0.25]}>
         <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} />
+        <CardSurfaceMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} cardDensity={4} gapSize={0.04} />
       </mesh>
       <mesh position={[0.1, 0.75, 0.25]}>
         <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} />
+        <CardSurfaceMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} cardDensity={4} gapSize={0.04} />
       </mesh>
 
       {/* Nose */}
       <mesh position={[0, 0.65, 0.28]}>
         <sphereGeometry args={[0.05, 6, 6]} />
-        <meshStandardMaterial color={darkGreen} />
+        <CardSurfaceMaterial color={darkGreen} cardDensity={4} gapSize={0.05} />
       </mesh>
 
       {/* Left arm */}
       <mesh position={[-0.4, 0.1, 0]} rotation={[0, 0, -0.4]}>
         <capsuleGeometry args={[0.07, 0.35, 4, 8]} />
-        <meshStandardMaterial color={green} />
+        <CardSurfaceMaterial color={green} cardDensity={6} gapSize={0.06} />
       </mesh>
 
       {/* Right arm + dagger */}
       <group ref={daggerRef} position={[0.4, 0.15, 0]} rotation={[0, 0, 0.3]}>
         <mesh>
           <capsuleGeometry args={[0.07, 0.35, 4, 8]} />
-          <meshStandardMaterial color={green} />
+          <CardSurfaceMaterial color={green} cardDensity={6} gapSize={0.06} />
         </mesh>
         {/* Dagger blade */}
         <mesh position={[0.05, 0.35, 0]} rotation={[0, 0, 0.2]}>
           <coneGeometry args={[0.03, 0.3, 4]} />
-          <meshStandardMaterial color="#cccccc" metalness={0.8} roughness={0.2} />
+          <CardSurfaceMaterial color="#cccccc" cardDensity={4} gapSize={0.05} />
         </mesh>
       </group>
 
       {/* Legs */}
       <mesh position={[-0.12, -0.5, 0]}>
         <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
-        <meshStandardMaterial color={darkGreen} />
+        <CardSurfaceMaterial color={darkGreen} cardDensity={6} gapSize={0.06} />
       </mesh>
       <mesh position={[0.12, -0.5, 0]}>
         <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
-        <meshStandardMaterial color={darkGreen} />
+        <CardSurfaceMaterial color={darkGreen} cardDensity={6} gapSize={0.06} />
       </mesh>
     </group>
   );
