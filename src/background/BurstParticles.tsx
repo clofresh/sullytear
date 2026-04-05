@@ -6,6 +6,7 @@ import type { EffectEvent } from './useCombatEffects';
 const POOL_SIZE = 300;
 
 const vertexShader = /* glsl */ `
+  precision highp float;
   attribute float aAlpha;
   attribute float aSize;
   attribute vec3 aColor;
@@ -16,11 +17,12 @@ const vertexShader = /* glsl */ `
     vColor = aColor;
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPos;
-    gl_PointSize = aSize * (800.0 / -mvPos.z);
+    gl_PointSize = min(aSize * (800.0 / -mvPos.z), 64.0);
   }
 `;
 
 const fragmentShader = /* glsl */ `
+  precision highp float;
   varying float vAlpha;
   varying vec3 vColor;
   void main() {

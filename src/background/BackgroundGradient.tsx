@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import type { CombatVisualState } from './useCombatEffects';
 
 const vertexShader = /* glsl */ `
+  precision highp float;
   varying vec2 vUv;
   void main() {
     vUv = uv;
@@ -12,6 +13,7 @@ const vertexShader = /* glsl */ `
 `;
 
 const fragmentShader = /* glsl */ `
+  precision highp float;
   uniform vec3 uTopColor;
   uniform vec3 uBottomColor;
   uniform float uTime;

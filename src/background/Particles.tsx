@@ -6,6 +6,7 @@ import type { CombatVisualState } from './useCombatEffects';
 const PARTICLE_COUNT = 300;
 
 const vertexShader = /* glsl */ `
+  precision highp float;
   attribute float aSize;
   attribute vec3 aColor;
   uniform float uTime;
@@ -21,11 +22,12 @@ const vertexShader = /* glsl */ `
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPos;
     // Size attenuation (scale matches Three.js pointsMaterial convention)
-    gl_PointSize = aSize * (800.0 / -mvPos.z);
+    gl_PointSize = min(aSize * (800.0 / -mvPos.z), 64.0);
   }
 `;
 
 const fragmentShader = /* glsl */ `
+  precision highp float;
   varying vec3 vColor;
   varying float vAlpha;
   void main() {

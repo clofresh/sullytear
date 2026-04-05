@@ -22,7 +22,6 @@
 html, body {
   width: 100%;
   height: 100%;
-  overflow: hidden;
   font-family: var(--font-family);
   background: var(--table-dark);
   color: #e0e0e0;
@@ -35,12 +34,5 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: var(--font-family);
   background: transparent;
-  color: #e0e0e0;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  display: flex;
-  flex-direction: column;
 }

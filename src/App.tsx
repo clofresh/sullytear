@@ -14,11 +14,13 @@ export default function App() {
       <Suspense fallback={null}>
         <AnimatedBackground />
       </Suspense>
-      <Header />
-      <CombatBar />
-      <GameBoard />
-      <WinScreen />
-      <CombatOverlay />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Header />
+        <CombatBar />
+        <GameBoard />
+        <WinScreen />
+        <CombatOverlay />
+      </div>
     </>
   );
 }

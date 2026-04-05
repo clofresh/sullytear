@@ -22,7 +22,7 @@ export default function AnimatedBackground() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
+        zIndex: 0,
         pointerEvents: 'none',
         background: '#0d2818',
       }}
