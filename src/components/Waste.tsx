@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
@@ -46,16 +47,26 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
           height={cardHeight}
         />
       )}
-      <Card
-        card={topCard}
-        width={cardWidth}
-        height={cardHeight}
-        zIndex={1}
-        onDoubleClick={handleDoubleClick}
-        draggable
-        onDragStart={() => onDragStart?.('waste', waste.length - 1)}
-        onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
-      />
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={topCard.id}
+          initial={{ rotateY: 180, x: -cardWidth * 0.5, opacity: 0.8 }}
+          animate={{ rotateY: 0, x: 0, opacity: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{ position: 'absolute', inset: 0, perspective: 600, transformStyle: 'preserve-3d' }}
+        >
+          <Card
+            card={topCard}
+            width={cardWidth}
+            height={cardHeight}
+            zIndex={1}
+            onDoubleClick={handleDoubleClick}
+            draggable
+            onDragStart={() => onDragStart?.('waste', waste.length - 1)}
+            onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

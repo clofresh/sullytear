@@ -1,4 +1,6 @@
+import { useRef, useEffect, useCallback } from 'react';
 import { useCombatStore } from '../game/combatStore';
+import { portraitPositions } from '../game/portraitPositions';
 import HealthBar from './HealthBar';
 import HeroSprite from './HeroSprite';
 import MonsterSprite from './MonsterSprite';
@@ -6,6 +8,27 @@ import DamageFlash from './DamageFlash';
 import './CombatBar.css';
 
 export default function CombatBar() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const monsterRef = useRef<HTMLDivElement>(null);
+
+  const updatePositions = useCallback(() => {
+    if (heroRef.current) {
+      const r = heroRef.current.getBoundingClientRect();
+      portraitPositions.hero.x = (r.left + r.width / 2) / window.innerWidth;
+      portraitPositions.hero.y = (r.top + r.height / 2) / window.innerHeight;
+    }
+    if (monsterRef.current) {
+      const r = monsterRef.current.getBoundingClientRect();
+      portraitPositions.monster.x = (r.left + r.width / 2) / window.innerWidth;
+      portraitPositions.monster.y = (r.top + r.height / 2) / window.innerHeight;
+    }
+  }, []);
+
+  useEffect(() => {
+    updatePositions();
+    window.addEventListener('resize', updatePositions);
+    return () => window.removeEventListener('resize', updatePositions);
+  }, [updatePositions]);
   const heroHp = useCombatStore(s => s.heroHp);
   const heroMaxHp = useCombatStore(s => s.heroMaxHp);
   const monsterHp = useCombatStore(s => s.monsterHp);
@@ -28,7 +51,7 @@ export default function CombatBar() {
       <div className="combat-bar-inner">
         {/* Hero side */}
         <div className="combatant hero-side">
-          <HeroSprite shake={isHeroHit} empowered={empowered} />
+          <div ref={heroRef}><HeroSprite shake={isHeroHit} empowered={empowered} /></div>
           <div className="combatant-info">
             <div className="combatant-name">Hero</div>
             <HealthBar current={heroHp} max={heroMaxHp} side="left" />
@@ -53,7 +76,7 @@ export default function CombatBar() {
             <div className="combatant-name">{monsterName}</div>
             <HealthBar current={monsterHp} max={monsterMaxHp} side="right" />
           </div>
-          <MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} />
+          <div ref={monsterRef}><MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} /></div>
         </div>
       </div>
     </div>

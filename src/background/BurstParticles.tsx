@@ -1,7 +1,8 @@
 import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { EffectEvent } from './useCombatEffects';
+import { portraitPositions } from '../game/portraitPositions';
 
 const POOL_SIZE = 300;
 
@@ -70,6 +71,17 @@ interface Props {
 export default function BurstParticles({ effectQueue }: Props) {
   const meshRef = useRef<THREE.Points>(null);
   const nextIdx = useRef(0);
+  const { camera } = useThree();
+
+  // Convert normalized screen position (0-1) to Three.js world coords at z=0
+  function screenToWorld(nx: number, ny: number): [number, number] {
+    const cam = camera as THREE.PerspectiveCamera;
+    const halfH = Math.tan((cam.fov * Math.PI / 180) / 2) * cam.position.z;
+    const halfW = halfH * cam.aspect;
+    const wx = (nx - 0.5) * 2 * halfW;
+    const wy = (0.5 - ny) * 2 * halfH; // flip Y (screen Y is top-down)
+    return [wx, wy];
+  }
 
   const { pool, positions, alphas, sizes, colors, geometry } = useMemo(() => {
     const positions = new Float32Array(POOL_SIZE * 3);
@@ -153,33 +165,37 @@ export default function BurstParticles({ effectQueue }: Props) {
       return;
     }
 
+    // Get portrait world positions
+    const [heroX, heroY] = screenToWorld(portraitPositions.hero.x, portraitPositions.hero.y);
+    const [monsterX, monsterY] = screenToWorld(portraitPositions.monster.x, portraitPositions.monster.y);
+
     switch (ev.type) {
       case 'hero-attack': {
         const count = isCombo ? Math.min(60, 20 + ev.damage) : 30;
         const intensity = isCombo ? 0.4 : 0.3;
-        // Burst upward from bottom
-        spawn(count, 0, -6, 0,
+        // Burst from hero portrait
+        spawn(count, heroX, heroY, 0,
           () => [(Math.random() - 0.5) * intensity, Math.random() * 0.25 + 0.1, (Math.random() - 0.5) * 0.05],
           C_GREEN, [0.1, 0.25], [0.8, 1.8], -0.003, 0.97, C_WHITE);
         break;
       }
       case 'monster-attack': {
-        // Rain down from top, red
-        spawn(25, 0, 6, 0,
+        // Burst from monster portrait
+        spawn(25, monsterX, monsterY, 0,
           () => [(Math.random() - 0.5) * 0.2, -Math.random() * 0.2 - 0.08, (Math.random() - 0.5) * 0.05],
           C_RED, [0.08, 0.18], [0.8, 1.5], 0.004, 0.98);
         break;
       }
       case 'hero-heal': {
-        // Gentle float up, bright green
-        spawn(20, 0, -2, 0,
+        // Gentle float up from hero
+        spawn(20, heroX, heroY, 0,
           () => [(Math.random() - 0.5) * 0.1, Math.random() * 0.1 + 0.03, (Math.random() - 0.5) * 0.03],
           C_HEAL_GREEN, [0.08, 0.15], [1, 2], -0.001, 0.99, C_WHITE);
         break;
       }
       case 'poison': {
-        // Spiral outward, purple
-        spawn(20, 0, 0, 0,
+        // Spiral outward from monster
+        spawn(20, monsterX, monsterY, 0,
           (i) => {
             const angle = (i / 20) * Math.PI * 2;
             return [Math.cos(angle) * 0.15, Math.sin(angle) * 0.15, (Math.random() - 0.5) * 0.03];
@@ -188,8 +204,8 @@ export default function BurstParticles({ effectQueue }: Props) {
         break;
       }
       case 'empower': {
-        // Ring expansion, gold
-        spawn(25, 0, 0, 0,
+        // Ring expansion from hero
+        spawn(25, heroX, heroY, 0,
           (i) => {
             const angle = (i / 25) * Math.PI * 2;
             return [Math.cos(angle) * 0.18, Math.sin(angle) * 0.18, 0];
