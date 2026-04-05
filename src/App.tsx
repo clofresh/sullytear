@@ -4,6 +4,7 @@ import GameBoard from './components/GameBoard';
 import WinScreen from './components/WinScreen';
 import CombatBar from './combat/CombatBar';
 import CombatOverlay from './combat/CombatOverlay';
+import CombatArena from './combat/arena/CombatArena';
 import DragTrail from './components/DragTrail';
 import RunStartScreen from './components/RunStartScreen';
 import { useRunStore } from './game/runStore';
@@ -25,6 +26,7 @@ export default function App() {
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Header />
           <CombatBar />
+          <CombatArena />
           <GameBoard />
           <WinScreen />
           <CombatOverlay />
