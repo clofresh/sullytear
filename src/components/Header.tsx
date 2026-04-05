@@ -19,6 +19,7 @@ export default function Header() {
 
   const isRunActive = useRunStore(s => s.isRunActive);
   const endRun = useRunStore(s => s.endRun);
+  const goldEarned = useRunStore(s => s.goldEarned);
   const gold = useMetaStore(s => s.gold);
 
   const showAutoComplete = !isWon && canAutoComplete(stock, waste, tableau);
@@ -42,7 +43,7 @@ export default function Header() {
         )}
       </div>
       <div className="header-right">
-        <div className="header-stat header-gold">&#9733; {gold}</div>
+        <div className="header-stat header-gold">&#9733; {gold + goldEarned}</div>
         <div className="header-stat">Moves: <span>{moves}</span></div>
         <div className="header-stat">Time: <span>{time}</span></div>
         <div className="header-stat header-hash">{COMMIT_HASH}</div>
