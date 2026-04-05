@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card as CardType, getColor, getRankLabel } from '../game/types';
 import { SUIT_SYMBOLS } from '../utils/constants';
@@ -32,14 +33,15 @@ export default function Card({
   onDragEnd,
   zIndex = 0,
 }: CardProps) {
+  const [isDragging, setIsDragging] = useState(false);
   const color = getColor(card.suit);
   const rank = getRankLabel(card.rank);
   const suit = SUIT_SYMBOLS[card.suit];
-  const fontSize = Math.max(width * 0.16, 8);
+  const fontSize = Math.max(width * 0.22, 10);
 
   return (
     <motion.div
-      className={`card ${color}`}
+      className={`card ${color}${isDragging ? ' dragging' : ''}`}
       style={{
         width,
         height,
@@ -54,9 +56,9 @@ export default function Card({
       dragSnapToOrigin
       dragElastic={0}
       dragMomentum={false}
-      onDragStart={onDragStart}
+      onDragStart={() => { setIsDragging(true); onDragStart?.(); }}
       onDrag={(e, info) => onDrag?.(e as unknown as PointerEvent, { offset: info.offset })}
-      onDragEnd={(e, info) => onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent })}
+      onDragEnd={(e, info) => { setIsDragging(false); onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent }); }}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
     >
       <div className="card-inner">

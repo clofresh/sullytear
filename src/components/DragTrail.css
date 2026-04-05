@@ -1,0 +1,16 @@
+.drag-trail-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.trail-particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 168, 67, 0.9), rgba(212, 168, 67, 0) 70%);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
