@@ -56,6 +56,7 @@ export default function Card({
       dragSnapToOrigin
       dragElastic={0}
       dragMomentum={false}
+      dragTransition={{ bounceStiffness: 400, bounceDamping: 28 }}
       onDragStart={() => { setIsDragging(true); onDragStart?.(); }}
       onDrag={(e, info) => onDrag?.(e as unknown as PointerEvent, { offset: info.offset })}
       onDragEnd={(e, info) => { setIsDragging(false); onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent }); }}
