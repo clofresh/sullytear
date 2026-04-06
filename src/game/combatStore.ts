@@ -18,7 +18,7 @@ const DEFAULT_ENCOUNTER: EncounterConfig = {
 };
 
 export interface CombatEvent {
-  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower';
+  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower' | 'face-card';
   damage: number;
   label?: string;
 }
@@ -50,6 +50,7 @@ interface CombatActions {
   setPoisonTurns: (turns: number) => void;
   setEmpowered: (empowered: boolean) => void;
   setEmpowerMultiplier: (multiplier: number) => void;
+  emitFaceCardEvent: (label: string) => void;
   resetCombat: () => void;
 }
 
@@ -148,6 +149,14 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
 
   setEmpowerMultiplier: (multiplier: number) => {
     set({ empowerMultiplier: multiplier, empowered: multiplier > 1.0 });
+  },
+
+  emitFaceCardEvent: (label: string) => {
+    const state = get();
+    set({
+      lastEvent: { type: 'face-card', damage: 0, label },
+      eventId: state.eventId + 1,
+    });
   },
 
   resetCombat: () => {
@@ -255,21 +264,21 @@ useGameStore.subscribe((state) => {
 
         combat.dealDamageToMonster(damage);
 
-        // Face card special effects
+        // Royal Awakening — Tier 3 (Awakens!)
         if (topCard.rank === 11) {
-          // Jack: apply poison (3 turns)
           combat.setPoisonTurns(3);
+          combat.emitFaceCardEvent('Jack Awakens!');
         } else if (topCard.rank === 12) {
-          // Queen: heal hero 5 HP
-          combat.healHero(5, 'Queen Heal!');
+          combat.healHero(5);
+          combat.emitFaceCardEvent('Queen Awakens!');
         } else if (topCard.rank === 13) {
-          // King: empower next placement (tier 3 — strongest)
           combat.setEmpowerMultiplier(2.0);
+          combat.emitFaceCardEvent('King Awakens!');
         }
 
-        // Ace: heal hero 3 HP
         if (topCard.rank === 1) {
-          combat.healHero(3, 'Ace Blessing!');
+          combat.healHero(3);
+          combat.emitFaceCardEvent('Ace Awakens!');
         }
       }
     } else if (currentLengths[i] < prevFoundationLengths[i]) {
@@ -375,10 +384,11 @@ useGameStore.subscribe((state) => {
           if (bottomOfMoved && bottomOfMoved.id === cardId) {
             playTriggeredCards.add(cardId);
             const card = bottomOfMoved;
-            if (card.rank === 1) combat.healHero(2, 'Ace Blessing!');
-            if (card.rank === 11) combat.setPoisonTurns(2);
-            if (card.rank === 12) combat.healHero(3, "Queen's Grace!");
-            if (card.rank === 13) combat.setEmpowerMultiplier(1.5);
+            // Royal Awakening — Tier 2 (Rises!)
+            if (card.rank === 1) { combat.healHero(2); combat.emitFaceCardEvent('Ace Rises!'); }
+            if (card.rank === 11) { combat.setPoisonTurns(2); combat.emitFaceCardEvent('Jack Rises!'); }
+            if (card.rank === 12) { combat.healHero(3); combat.emitFaceCardEvent('Queen Rises!'); }
+            if (card.rank === 13) { combat.setEmpowerMultiplier(1.5); combat.emitFaceCardEvent('King Rises!'); }
           }
         }
       }
@@ -413,13 +423,13 @@ useGameStore.subscribe((state) => {
       const reveals = prevFaceDownCounts[i] - currentFaceDownCounts[i];
       combat.dealDamageToMonster(2 * reveals, 'Reveal!');
 
-      // Tier 1 face card effects on reveal
+      // Royal Awakening — Tier 1 (Stirs...)
       for (const card of state.tableau[i]) {
         if (card.faceUp && prevFaceDownIds.has(card.id)) {
-          if (card.rank === 1) combat.healHero(1, 'Ace Found!');
-          if (card.rank === 11) combat.setPoisonTurns(1);
-          if (card.rank === 12) combat.healHero(2, 'Queen Found!');
-          if (card.rank === 13) combat.setEmpowerMultiplier(1.25);
+          if (card.rank === 1) { combat.healHero(1); combat.emitFaceCardEvent('Ace Stirs...'); }
+          if (card.rank === 11) { combat.setPoisonTurns(1); combat.emitFaceCardEvent('Jack Stirs...'); }
+          if (card.rank === 12) { combat.healHero(2); combat.emitFaceCardEvent('Queen Stirs...'); }
+          if (card.rank === 13) { combat.setEmpowerMultiplier(1.25); combat.emitFaceCardEvent('King Stirs...'); }
         }
       }
     } else if (currentFaceDownCounts[i] > prevFaceDownCounts[i]) {

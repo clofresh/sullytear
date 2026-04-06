@@ -4,7 +4,7 @@ import { useCombatStore } from '../game/combatStore';
 import { useGameStore } from '../game/store';
 
 export interface EffectEvent {
-  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower';
+  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower' | 'face-card';
   damage: number;
   label?: string;
   timestamp: number;
