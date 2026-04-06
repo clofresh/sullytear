@@ -32,7 +32,7 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
     const multiplier = combat.empowerMultiplier;
     const damage: number = multiplier !== 1.0 ? Math.round(rank * multiplier) : rank;
     const faceName = FACE_NAMES[rank];
-    const dmgStr = multiplier !== 1.0 ? `-${damage} dmg (${multiplier}x)` : `-${damage} dmg`;
+    const dmgStr = multiplier !== 1.0 ? `${damage} dmg (${multiplier}x)` : `${damage} dmg`;
 
     if (faceName) {
       return `${dmgStr} · ${faceName} Awakens! ${TIER_3_EFFECTS[rank]}`;
@@ -43,7 +43,7 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
   if (targetPileId.startsWith('tableau-')) {
     // Non-face from waste: show damage
     if (sourcePileId === 'waste' && !isFaceCard(rank)) {
-      return `-${rank} dmg`;
+      return `${rank} dmg`;
     }
     // Face card from tableau: show Rises! + effect if not already triggered
     if (isFaceCard(rank) && sourcePileId?.startsWith('tableau-')) {
