@@ -25,17 +25,36 @@ export default function Stock({ cardWidth, cardHeight, onDragStart, onDragEnd }:
     );
   }
 
+  const topCard = stock[stock.length - 1];
+  const hasMore = stock.length > 1;
+
   return (
     <div data-pile-id="stock" style={{ position: 'relative', width: cardWidth, height: cardHeight }}>
-      <Card
-        card={stock[stock.length - 1]}
-        width={cardWidth}
-        height={cardHeight}
-        onClick={drawFromStock}
-        draggable
-        onDragStart={() => onDragStart?.('stock', stock.length - 1)}
-        onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
-      />
+      {/* Underneath: second card if present, else empty placeholder */}
+      {hasMore ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <Card
+            card={stock[stock.length - 2]}
+            width={cardWidth}
+            height={cardHeight}
+          />
+        </div>
+      ) : (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <CardPlaceholder width={cardWidth} height={cardHeight} />
+        </div>
+      )}
+      {/* Top card: draggable */}
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <Card
+          card={topCard}
+          width={cardWidth}
+          height={cardHeight}
+          draggable
+          onDragStart={() => onDragStart?.('stock', stock.length - 1)}
+          onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
+        />
+      </div>
     </div>
   );
 }
