@@ -1,5 +1,6 @@
 import type { Card } from './types';
 import { useCombatStore, _hasPlayTriggered } from './combatStore';
+import { useGameStore } from './store';
 
 const FACE_NAMES: Record<number, string> = { 1: 'Ace', 11: 'Jack', 12: 'Queen', 13: 'King' };
 
@@ -26,6 +27,17 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
   if (cards.length === 0) return null;
   const card = cards[0];
   const rank = card.rank;
+
+  if (targetPileId === 'waste' && sourcePileId === 'stock') {
+    const combat = useCombatStore.getState();
+    const stockEmpty = useGameStore.getState().stock.length === 0;
+    const baseDmg = stockEmpty ? combat.monsterAttackDamage : 1;
+    const poison = combat.poisonTurns;
+    if (poison > 0) {
+      return `${baseDmg} + 2 poison dmg to you`;
+    }
+    return `${baseDmg} dmg to you`;
+  }
 
   if (targetPileId.startsWith('foundation-')) {
     const combat = useCombatStore.getState();

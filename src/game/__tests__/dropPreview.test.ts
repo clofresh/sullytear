@@ -103,4 +103,23 @@ describe('getDropPreview', () => {
       expect(getDropPreview([makeCard('spades', 5)], 'tableau-0', 'tableau-1')).toBeNull();
     });
   });
+
+  describe('Waste target (stock draw)', () => {
+    it('shows base draw cost', () => {
+      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('1 dmg to you');
+    });
+
+    it('shows draw cost + poison when poisoned', () => {
+      useCombatStore.getState().setPoisonTurns(2);
+      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('1 + 2 poison dmg to you');
+    });
+
+    it('shows cycle cost when stock is empty', () => {
+      const monsterAtk = useCombatStore.getState().monsterAttackDamage;
+      _withSuppressedEvents(() => {
+        useGameStore.setState({ stock: [] });
+      });
+      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe(`${monsterAtk} dmg to you`);
+    });
+  });
 });

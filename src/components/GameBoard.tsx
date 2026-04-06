@@ -19,7 +19,9 @@ export default function GameBoard() {
     // Populate shared drag state for valid-target highlighting
     const state = useGameStore.getState();
     let cards: import('../game/types').Card[] = [];
-    if (pileId === 'waste') {
+    if (pileId === 'stock') {
+      cards = state.stock.length > 0 ? [state.stock[state.stock.length - 1]] : [];
+    } else if (pileId === 'waste') {
       cards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
     } else if (pileId.startsWith('tableau-')) {
       const tabIdx = parseInt(pileId.split('-')[1]);
@@ -82,6 +84,12 @@ export default function GameBoard() {
 
     if (!targetPileId) return;
 
+    // Stock → waste: draw from stock
+    if (dragSource.pileId === 'stock' && targetPileId === 'waste') {
+      state.drawFromStock();
+      return;
+    }
+
     // Get the cards being moved from fresh state
     let movingCards: import('../game/types').Card[];
     if (dragSource.pileId === 'waste') {
@@ -111,7 +119,12 @@ export default function GameBoard() {
     >
       <div className="top-row">
         <div className="top-left">
-          <Stock cardWidth={cardWidth} cardHeight={cardHeight} />
+          <Stock
+            cardWidth={cardWidth}
+            cardHeight={cardHeight}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          />
           <Waste
             cardWidth={cardWidth}
             cardHeight={cardHeight}
