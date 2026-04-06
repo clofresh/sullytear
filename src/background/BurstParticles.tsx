@@ -173,15 +173,15 @@ export default function BurstParticles({ effectQueue }: Props) {
       case 'hero-attack': {
         const count = isCombo ? Math.min(60, 20 + ev.damage) : 30;
         const intensity = isCombo ? 0.4 : 0.3;
-        // Burst from hero portrait
-        spawn(count, heroX, heroY, 0,
+        // Burst from monster (the one being hit)
+        spawn(count, monsterX, monsterY, 0,
           () => [(Math.random() - 0.5) * intensity, Math.random() * 0.25 + 0.1, (Math.random() - 0.5) * 0.05],
           C_GREEN, [0.1, 0.25], [0.8, 1.8], -0.003, 0.97, C_WHITE);
         break;
       }
       case 'monster-attack': {
-        // Burst from monster portrait
-        spawn(25, monsterX, monsterY, 0,
+        // Burst from hero (the one being hit)
+        spawn(25, heroX, heroY, 0,
           () => [(Math.random() - 0.5) * 0.2, -Math.random() * 0.2 - 0.08, (Math.random() - 0.5) * 0.05],
           C_RED, [0.08, 0.18], [0.8, 1.5], 0.004, 0.98);
         break;
@@ -216,15 +216,41 @@ export default function BurstParticles({ effectQueue }: Props) {
     }
   }
 
+  // Delayed events waiting for attack wind-up to finish
+  const delayedEvents = useRef<{ ev: EffectEvent; fireAt: number }[]>([]);
+
+  // Anticipation durations matching HeroModel/MonsterModel
+  const HERO_ANTICIPATE = 120;   // ms, matches 0.12s in HeroModel
+  const MONSTER_ANTICIPATE = 150; // ms, matches 0.15s in MonsterModel
+
   useFrame((_, delta) => {
     if (!meshRef.current) return;
 
-    // Process queued events
+    const now = Date.now();
+
+    // Process queued events — delay attack particles until wind-up ends
     const queue = effectQueue.current;
     if (!queue) return;
     while (queue.length > 0) {
       const ev = queue.shift()!;
-      processEvent(ev);
+      const isVictory = ev.label === 'victory';
+      const isDefeat = ev.label === 'defeat';
+      if (!isVictory && !isDefeat && ev.type === 'hero-attack') {
+        delayedEvents.current.push({ ev, fireAt: now + HERO_ANTICIPATE });
+      } else if (!isVictory && !isDefeat && ev.type === 'monster-attack') {
+        delayedEvents.current.push({ ev, fireAt: now + MONSTER_ANTICIPATE });
+      } else {
+        processEvent(ev);
+      }
+    }
+
+    // Fire delayed events whose time has come
+    const pending = delayedEvents.current;
+    for (let i = pending.length - 1; i >= 0; i--) {
+      if (now >= pending[i].fireAt) {
+        processEvent(pending[i].ev);
+        pending.splice(i, 1);
+      }
     }
 
     // Update active particles
