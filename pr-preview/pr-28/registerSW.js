@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sullytear/pr-preview/pr-28/sw.js', { scope: '/sullytear/pr-preview/pr-28/' })})}
