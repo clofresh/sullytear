@@ -245,7 +245,7 @@ useGameStore.subscribe((state) => {
       // Card was placed on foundation
       const topCard = state.foundations[i][state.foundations[i].length - 1];
       if (topCard) {
-        let damage = topCard.rank;
+        let damage: number = topCard.rank;
 
         // Empowered: multiply damage, then clear
         if (combat.empowerMultiplier > 1.0) {
