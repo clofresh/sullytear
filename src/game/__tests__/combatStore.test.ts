@@ -219,7 +219,7 @@ describe('Combat Store', () => {
       expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 5 + 5);
     });
 
-    it('King placement sets empowered, next placement deals double', () => {
+    it('King placement sets empowerMultiplier to 2.0, next placement deals double', () => {
       const foundationPile: Card[] = [];
       for (let r = 1; r <= 12; r++) {
         foundationPile.push(makeCard('hearts', r as Rank));
@@ -244,11 +244,11 @@ describe('Combat Store', () => {
         to: 'foundation-0',
       });
 
-      expect(useCombatStore.getState().empowered).toBe(true);
+      expect(useCombatStore.getState().empowerMultiplier).toBe(2.0);
       const hpAfterKing = useCombatStore.getState().monsterHp;
       expect(hpAfterKing).toBe(monsterHpBefore - 13);
 
-      // Place Ace on foundation-1 — should deal double (2 instead of 1)
+      // Place Ace on foundation-1 — should deal double (1 * 2 = 2)
       useGameStore.getState().moveCards({
         cards: [makeCard('diamonds', 1)],
         from: 'tableau-1',
@@ -256,7 +256,7 @@ describe('Combat Store', () => {
         to: 'foundation-1',
       });
 
-      expect(useCombatStore.getState().empowered).toBe(false);
+      expect(useCombatStore.getState().empowerMultiplier).toBe(1.0);
       // Ace damage doubled: 1 * 2 = 2
       expect(useCombatStore.getState().monsterHp).toBe(hpAfterKing - 2);
     });
@@ -524,9 +524,9 @@ describe('Combat Store', () => {
   });
 
   describe('resetCombat', () => {
-    it('clears all state including poison and empowered', () => {
+    it('clears all state including poison and empowerMultiplier', () => {
       useCombatStore.getState().setPoisonTurns(3);
-      useCombatStore.getState().setEmpowered(true);
+      useCombatStore.getState().setEmpowerMultiplier(2.0);
       useCombatStore.getState().dealDamageToHero(20);
       useCombatStore.getState().dealDamageToMonster(30);
 
@@ -534,10 +534,552 @@ describe('Combat Store', () => {
 
       const state = useCombatStore.getState();
       expect(state.poisonTurns).toBe(0);
-      expect(state.empowered).toBe(false);
+      expect(state.empowerMultiplier).toBe(1.0);
       expect(state.heroHp).toBe(state.heroMaxHp);
       expect(state.monsterHp).toBe(state.monsterMaxHp);
       expect(state.combatResult).toBe('none');
+    });
+  });
+
+  describe('Face card reveal effects (tier 1)', () => {
+    it('revealing a face-down Jack sets poisonTurns to 1', () => {
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 11, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Move 5♠ to column 1 (black 5 on red 6), revealing the Jack
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().poisonTurns).toBe(1);
+    });
+
+    it('revealing a face-down Queen heals hero 2 HP', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 12, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      // Queen reveal heals 2
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2);
+    });
+
+    it('revealing a face-down King sets empowerMultiplier to 1.25', () => {
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 13, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().empowerMultiplier).toBe(1.25);
+    });
+
+    it('revealing a face-down Ace heals hero 1 HP', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 1, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      // Ace reveal heals 1
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 1);
+    });
+
+    it('revealing a non-face card does NOT trigger face card effects', () => {
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 7, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      // No heal, no poison
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore);
+      expect(useCombatStore.getState().poisonTurns).toBe(0);
+    });
+
+    it('undo reverses reveal face card effects (Queen heal)', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('hearts', 12, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2);
+
+      useGameStore.getState().undo();
+
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore);
+    });
+  });
+
+  describe('Face card play effects (tier 2)', () => {
+    it('moving a Jack tableau-to-tableau sets poisonTurns to 2', () => {
+      // Jack♠ on column 0, valid target 12♥ on column 1 (black Jack on red Queen)
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11)],
+          [makeCard('hearts', 12)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().poisonTurns).toBe(2);
+    });
+
+    it('moving a Queen tableau-to-tableau heals hero 3 HP', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      // Queen♠ on column 0, King♥ on column 1 (black Queen on red King)
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 12)],
+          [makeCard('hearts', 13)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 12)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      // Queen play heals 3 + column clear heals 5
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 3 + 5);
+    });
+
+    it('moving a King tableau-to-tableau sets empowerMultiplier to 1.5', () => {
+      // King♠ on column 0, empty column 1 (Kings can go on empty)
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 13)],
+          [],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 13)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().empowerMultiplier).toBe(1.5);
+    });
+
+    it('moving an Ace waste-to-tableau heals hero 2 HP', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      // Ace♠ in waste, 2♥ on column 0 (black Ace on red 2)
+      setupGameState({
+        stock: [],
+        waste: [makeCard('spades', 1)],
+        tableau: [
+          [makeCard('hearts', 2)],
+          [], [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+        stockCycleCount: 0,
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 1)],
+        from: 'waste',
+        fromIndex: 0,
+        to: 'tableau-0',
+      });
+
+      // Ace play heals 2 (+ waste-to-tableau deals rank 1 damage to monster)
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2);
+    });
+
+    it('play effect only fires once per card', () => {
+      // Jack♠ on column 0, Queen♥ on column 1, King♠ on column 2
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11)],
+          [makeCard('hearts', 12)],
+          [makeCard('spades', 13)],
+          [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Move Jack to column 1
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().poisonTurns).toBe(2);
+
+      // Clear poison to test if second move re-triggers
+      useCombatStore.getState().setPoisonTurns(0);
+
+      // Move Jack (with Queen) to column 2 — Jack is NOT the bottom card of the group
+      // Actually, let's set up a scenario where Jack IS bottom card moving again
+      // After first move: column 1 has [Q♥, J♠], column 2 has [K♠]
+      // Move just the Jack from column 1 to column 2
+      // Wait — Jack under Queen can't be moved alone in Klondike. Let me rethink.
+      // Instead: move the whole stack [Q♥, J♠] is not valid on K♠ because Q♥ on K♠ needs alternating color and Q♥ is red, K♠ is black — valid!
+      // But in that case, Q♥ is the bottom card, not J♠.
+      // Let me use a different setup where Jack can move twice as bottom card.
+
+      // Reset and use a simpler approach
+      resetAll();
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11)],
+          [makeCard('hearts', 12)],
+          [makeCard('diamonds', 12)],
+          [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Move Jack to column 1 (under Queen♥ — black on red)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+      expect(useCombatStore.getState().poisonTurns).toBe(2);
+      useCombatStore.getState().setPoisonTurns(0);
+
+      // Move Jack to column 2 (under Queen♦ — black on red)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-1',
+        fromIndex: 1,
+        to: 'tableau-2',
+      });
+
+      // Should NOT re-trigger — play effect already fired for this card
+      expect(useCombatStore.getState().poisonTurns).toBe(0);
+    });
+
+    it('non-face cards do not trigger play effects', () => {
+      useCombatStore.getState().dealDamageToHero(20);
+      const heroHpBefore = useCombatStore.getState().heroHp; // 30
+
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      // Column clear heals 5, but no face card play effect
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 5);
+      expect(useCombatStore.getState().poisonTurns).toBe(0);
+    });
+
+    it('undo reverses play trigger and allows re-triggering', () => {
+      useCombatStore.getState().dealDamageToHero(10);
+      const heroHpBefore = useCombatStore.getState().heroHp;
+
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 12)],
+          [makeCard('hearts', 13)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Move Queen to column 1
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 12)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      // Queen play heals 3 + column clear heals 5
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 3 + 5);
+
+      useGameStore.getState().undo();
+
+      // Should revert both heals
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore);
+
+      // Move Queen again — should re-trigger since undo removed it from tracking
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 12)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 3 + 5);
+    });
+  });
+
+  describe('Escalating face card effects across tiers', () => {
+    it('King: empower escalates 1.25 → 1.5 → 2.0 across reveal, play, foundation', () => {
+      // Column 0: face-down King under a face-up 5♠. Column 1: 6♥. Column 2: empty.
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 13, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [],
+          [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Step 1: Reveal King (move 5♠ to column 1)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+      expect(useCombatStore.getState().empowerMultiplier).toBe(1.25);
+
+      // Step 2: Move King to empty column 2 (play trigger)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 13)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-2',
+      });
+      expect(useCombatStore.getState().empowerMultiplier).toBe(1.5);
+
+      // Step 3: Build foundation to accept King, then place it
+      const foundationPile: Card[] = [];
+      for (let r = 1; r <= 12; r++) {
+        foundationPile.push(makeCard('spades', r as Rank));
+      }
+      setupGameState({
+        tableau: [
+          [],
+          [makeCard('hearts', 6), makeCard('spades', 5)],
+          [makeCard('spades', 13)],
+          [], [], [], [],
+        ],
+        foundations: [foundationPile, [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 13)],
+        from: 'tableau-2',
+        fromIndex: 0,
+        to: 'foundation-0',
+      });
+      expect(useCombatStore.getState().empowerMultiplier).toBe(2.0);
+    });
+
+    it('Jack: poison escalates 1 → 2 → 3 across reveal, play, foundation', () => {
+      // Column 0: face-down Jack♠ under face-up 5♠. Column 1: 6♥ (valid target for black 5).
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [makeCard('diamonds', 12)],
+          [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Step 1: Reveal Jack (move 5♠ to 6♥ — black 5 on red 6)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+      expect(useCombatStore.getState().poisonTurns).toBe(1);
+
+      // Step 2: Move Jack♠ (black) to Q♦ (red) on column 2
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-2',
+      });
+      expect(useCombatStore.getState().poisonTurns).toBe(2);
+
+      // Step 3: Build foundation and place Jack
+      const foundationPile: Card[] = [];
+      for (let r = 1; r <= 10; r++) {
+        foundationPile.push(makeCard('spades', r as Rank));
+      }
+      setupGameState({
+        tableau: [
+          [],
+          [makeCard('hearts', 6), makeCard('spades', 5)],
+          [makeCard('diamonds', 12), makeCard('spades', 11)],
+          [], [], [], [],
+        ],
+        foundations: [foundationPile, [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-2',
+        fromIndex: 1,
+        to: 'foundation-0',
+      });
+      expect(useCombatStore.getState().poisonTurns).toBe(3);
+    });
+
+    it('Queen: total healing across all tiers is 2+3+5=10', () => {
+      useCombatStore.getState().dealDamageToHero(30);
+      const heroHpBefore = useCombatStore.getState().heroHp; // 20
+
+      // Column 0: face-down Queen under face-up 5♠. Column 1: 6♥.
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 12, false), makeCard('spades', 5)],
+          [makeCard('hearts', 6)],
+          [makeCard('hearts', 13)],
+          [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      // Step 1: Reveal Queen (move 5♠ to 6♥)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 5)],
+        from: 'tableau-0',
+        fromIndex: 1,
+        to: 'tableau-1',
+      });
+      // Queen reveal heals 2
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2);
+
+      // Step 2: Move Queen to column 2 (Q♠ black on K♥ red)
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 12)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-2',
+      });
+      // Queen play heals 3 + column clear heals 5
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2 + 3 + 5);
+
+      // Step 3: Place Queen on foundation
+      const foundationPile: Card[] = [];
+      for (let r = 1; r <= 11; r++) {
+        foundationPile.push(makeCard('spades', r as Rank));
+      }
+      setupGameState({
+        tableau: [
+          [],
+          [makeCard('hearts', 6), makeCard('spades', 5)],
+          [makeCard('hearts', 13), makeCard('spades', 12)],
+          [], [], [], [],
+        ],
+        foundations: [foundationPile, [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 12)],
+        from: 'tableau-2',
+        fromIndex: 1,
+        to: 'foundation-0',
+      });
+      // Queen foundation heals 5
+      // Total: 2 + 3 + 5 (column clear) + 5 = 15 heal (but we're checking against heroHpBefore)
+      expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2 + 3 + 5 + 5);
     });
   });
 
