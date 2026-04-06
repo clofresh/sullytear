@@ -65,8 +65,9 @@ export default function GameBoard() {
     }
 
     // Fallback: if elementsFromPoint missed but we have valid targets,
-    // find the closest valid target pile to the pointer
+    // find the closest valid target pile to the pointer (within max snap distance)
     if (!targetPileId && validTargets.size > 0) {
+      const MAX_SNAP_DISTANCE = cardWidth * 1.2;
       let bestDist = Infinity;
       for (const vtId of validTargets) {
         const el = document.querySelector(`[data-pile-id="${vtId}"]`);
@@ -75,7 +76,7 @@ export default function GameBoard() {
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
         const dist = Math.hypot(point.x - cx, point.y - cy);
-        if (dist < bestDist) {
+        if (dist < bestDist && dist <= MAX_SNAP_DISTANCE) {
           bestDist = dist;
           targetPileId = vtId;
         }
