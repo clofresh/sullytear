@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from '../store';
-import { useCombatStore, _resetTracking, _withSuppressedEvents } from '../combatStore';
+import { useCombatStore, _resetTracking, _withSuppressedEvents, _hasPlayTriggered } from '../combatStore';
 import type { Card, Rank, Suit } from '../types';
 
 function makeCard(suit: Suit, rank: Rank, faceUp = true): Card {
@@ -844,6 +844,52 @@ describe('Combat Store', () => {
 
       // Should NOT re-trigger — play effect already fired for this card
       expect(useCombatStore.getState().poisonTurns).toBe(0);
+    });
+
+    it('_hasPlayTriggered returns true after play, false before', () => {
+      expect(_hasPlayTriggered('spades-11')).toBe(false);
+
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11)],
+          [makeCard('hearts', 12)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(_hasPlayTriggered('spades-11')).toBe(true);
+    });
+
+    it('_hasPlayTriggered returns false after undo', () => {
+      setupGameState({
+        tableau: [
+          [makeCard('spades', 11)],
+          [makeCard('hearts', 12)],
+          [], [], [], [], [],
+        ],
+        foundations: [[], [], [], []],
+      });
+
+      useGameStore.getState().moveCards({
+        cards: [makeCard('spades', 11)],
+        from: 'tableau-0',
+        fromIndex: 0,
+        to: 'tableau-1',
+      });
+
+      expect(_hasPlayTriggered('spades-11')).toBe(true);
+
+      useGameStore.getState().undo();
+
+      expect(_hasPlayTriggered('spades-11')).toBe(false);
     });
 
     it('non-face cards do not trigger play effects', () => {

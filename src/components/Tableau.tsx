@@ -5,6 +5,7 @@ import { findFoundationIndex, canMoveToTableau } from '../game/rules';
 import { FACE_DOWN_OFFSET } from '../utils/constants';
 import { dragState } from '../game/dragState';
 import type { PileId } from '../game/types';
+import DropPreview from './DropPreview';
 
 interface TableauProps {
   index: number;
@@ -155,7 +156,10 @@ export default function Tableau({
       }}
     >
       {pile.length === 0 && (
-        <CardPlaceholder width={cardWidth} height={cardHeight} label="K" />
+        <>
+          {isValidTarget && <DropPreview targetPileId={pileId} />}
+          <CardPlaceholder width={cardWidth} height={cardHeight} label="K" />
+        </>
       )}
       {pile.map((card, i) => {
         let top = 0;
@@ -179,6 +183,7 @@ export default function Tableau({
               height: cardHeight,
             }}
           >
+            {isTopCard && isValidTarget && <DropPreview targetPileId={pileId} />}
             <Card
               card={card}
               width={cardWidth}

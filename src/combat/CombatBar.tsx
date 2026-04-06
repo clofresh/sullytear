@@ -49,8 +49,6 @@ export default function CombatBar() {
   const isHeroHit = lastEvent?.type === 'monster-attack';
   const isMonsterHit = lastEvent?.type === 'hero-attack' || lastEvent?.type === 'poison';
   const isHeroHeal = lastEvent?.type === 'hero-heal';
-  const isFaceCard = lastEvent?.type === 'face-card';
-
   return (
     <div className="combat-bar">
       <div className="combat-bar-inner">
@@ -65,9 +63,6 @@ export default function CombatBar() {
             <DamageFlash event={lastEvent} eventId={eventId} />
           )}
           {isHeroHeal && lastEvent && (
-            <DamageFlash event={lastEvent} eventId={eventId} />
-          )}
-          {isFaceCard && lastEvent && (
             <DamageFlash event={lastEvent} eventId={eventId} />
           )}
         </div>

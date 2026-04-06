@@ -212,6 +212,10 @@ function initTracking() {
 }
 
 // Export for tests — suppress events during state setup, then reset tracking
+export function _hasPlayTriggered(cardId: string): boolean {
+  return playTriggeredCards.has(cardId);
+}
+
 export function _resetTracking() {
   _suppressEvents = true;
   initTracking();
