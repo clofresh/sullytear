@@ -3,6 +3,7 @@ import Header from './components/Header';
 import GameBoard from './components/GameBoard';
 import WinScreen from './components/WinScreen';
 import CombatBar from './combat/CombatBar';
+import RoyalAwakeningBanner from './combat/RoyalAwakeningBanner';
 import CombatOverlay from './combat/CombatOverlay';
 import CombatArena from './combat/arena/CombatArena';
 import DragTrail from './components/DragTrail';
@@ -26,6 +27,7 @@ export default function App() {
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Header />
           <CombatBar />
+          <RoyalAwakeningBanner />
           <CombatArena />
           <GameBoard />
           <WinScreen />

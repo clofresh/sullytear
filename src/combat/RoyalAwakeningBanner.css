@@ -1,0 +1,16 @@
+.royal-awakening-banner {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.royal-awakening-banner.tier-3 {
+  letter-spacing: 2px;
+}

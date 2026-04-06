@@ -49,7 +49,6 @@ export default function CombatBar() {
   const isHeroHit = lastEvent?.type === 'monster-attack';
   const isMonsterHit = lastEvent?.type === 'hero-attack' || lastEvent?.type === 'poison';
   const isHeroHeal = lastEvent?.type === 'hero-heal';
-
   return (
     <div className="combat-bar">
       <div className="combat-bar-inner">

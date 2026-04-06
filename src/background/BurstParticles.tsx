@@ -55,6 +55,8 @@ const C_HEAL_GREEN = new THREE.Color('#44dd44');
 const C_PURPLE = new THREE.Color('#aa44dd');
 const C_GOLD = new THREE.Color('#d4a843');
 const C_DARK_RED = new THREE.Color('#661111');
+const C_ROYAL_PURPLE = new THREE.Color('#c8a2ff');
+const C_ROYAL_GOLD = new THREE.Color('#ffd866');
 
 function lerpColor(a: THREE.Color, b: THREE.Color, t: number): THREE.Color {
   return new THREE.Color(
@@ -211,6 +213,25 @@ export default function BurstParticles({ effectQueue }: Props) {
             return [Math.cos(angle) * 0.18, Math.sin(angle) * 0.18, 0];
           },
           C_GOLD, [0.1, 0.2], [0.8, 1.5], 0, 0.97, C_WHITE);
+        break;
+      }
+      case 'face-card': {
+        // Royal Awakening — tier-scaled particle burst from hero
+        const isAwakens = ev.label?.includes('Awakens');
+        const isRises = ev.label?.includes('Rises');
+        const count = isAwakens ? 40 : isRises ? 25 : 15;
+        const speed = isAwakens ? 0.25 : isRises ? 0.18 : 0.1;
+        const baseColor = isAwakens ? C_ROYAL_GOLD : C_ROYAL_PURPLE;
+        const variantColor = isAwakens ? C_WHITE : C_ROYAL_GOLD;
+        const sizeRange: [number, number] = isAwakens ? [0.12, 0.3] : isRises ? [0.1, 0.22] : [0.06, 0.14];
+        const lifeRange: [number, number] = isAwakens ? [1.2, 2.5] : isRises ? [0.8, 1.8] : [0.6, 1.2];
+        spawn(count, heroX, heroY, 0,
+          (n) => {
+            const angle = (n / count) * Math.PI * 2 + Math.random() * 0.3;
+            const r = speed * (0.7 + Math.random() * 0.6);
+            return [Math.cos(angle) * r, Math.sin(angle) * r + 0.05, (Math.random() - 0.5) * 0.05];
+          },
+          baseColor, sizeRange, lifeRange, -0.001, 0.97, variantColor);
         break;
       }
     }

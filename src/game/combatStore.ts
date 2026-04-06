@@ -18,7 +18,7 @@ const DEFAULT_ENCOUNTER: EncounterConfig = {
 };
 
 export interface CombatEvent {
-  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower';
+  type: 'hero-attack' | 'monster-attack' | 'hero-heal' | 'poison' | 'empower' | 'face-card';
   damage: number;
   label?: string;
 }
@@ -37,6 +37,7 @@ interface CombatState {
   eventId: number;
   poisonTurns: number;
   empowered: boolean;
+  empowerMultiplier: number;
 }
 
 interface CombatActions {
@@ -48,6 +49,8 @@ interface CombatActions {
   applyPoison: () => void;
   setPoisonTurns: (turns: number) => void;
   setEmpowered: (empowered: boolean) => void;
+  setEmpowerMultiplier: (multiplier: number) => void;
+  emitFaceCardEvent: (label: string) => void;
   resetCombat: () => void;
 }
 
@@ -65,6 +68,7 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
   eventId: 0,
   poisonTurns: 0,
   empowered: false,
+  empowerMultiplier: 1.0,
 
   startCombat: (config = DEFAULT_ENCOUNTER) => {
     set({
@@ -81,6 +85,7 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
       eventId: 0,
       poisonTurns: 0,
       empowered: false,
+      empowerMultiplier: 1.0,
     });
   },
 
@@ -142,6 +147,18 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
     set({ empowered });
   },
 
+  setEmpowerMultiplier: (multiplier: number) => {
+    set({ empowerMultiplier: multiplier, empowered: multiplier > 1.0 });
+  },
+
+  emitFaceCardEvent: (label: string) => {
+    const state = get();
+    set({
+      lastEvent: { type: 'face-card', damage: 0, label },
+      eventId: state.eventId + 1,
+    });
+  },
+
   resetCombat: () => {
     get().startCombat();
   },
@@ -154,9 +171,30 @@ let prevWasteLength = 0;
 let prevWasteTopId: string | null = null;
 let prevTableauEmpty: boolean[] = [];
 let prevFaceDownCounts: number[] = [];
+let playTriggeredCards = new Set<string>();
+// Track which pile each face card was in, for detecting moves
+let prevFaceCardPiles: Map<string, string> = new Map(); // cardId -> pileId
+let prevFaceDownIds: Set<string> = new Set();
 let prevTableauLengths: number[] = [];
 let prevMoves = 0;
 let _suppressEvents = false;
+
+function buildFaceCardPiles(state: { tableau: import('./types').Card[][]; waste: import('./types').Card[] }): Map<string, string> {
+  const map = new Map<string, string>();
+  for (let i = 0; i < state.tableau.length; i++) {
+    for (const card of state.tableau[i]) {
+      if (card.faceUp && [1, 11, 12, 13].includes(card.rank)) {
+        map.set(card.id, `tableau-${i}`);
+      }
+    }
+  }
+  for (const card of state.waste) {
+    if ([1, 11, 12, 13].includes(card.rank)) {
+      map.set(card.id, 'waste');
+    }
+  }
+  return map;
+}
 
 function initTracking() {
   const state = useGameStore.getState();
@@ -166,11 +204,18 @@ function initTracking() {
   prevWasteTopId = state.waste.length > 0 ? state.waste[state.waste.length - 1].id : null;
   prevTableauEmpty = state.tableau.map(t => t.length === 0);
   prevFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+  prevFaceDownIds = new Set(state.tableau.flat().filter(c => !c.faceUp).map(c => c.id));
   prevTableauLengths = state.tableau.map(t => t.length);
+  prevFaceCardPiles = buildFaceCardPiles(state);
   prevMoves = state.moves;
+  playTriggeredCards = new Set<string>();
 }
 
 // Export for tests — suppress events during state setup, then reset tracking
+export function _hasPlayTriggered(cardId: string): boolean {
+  return playTriggeredCards.has(cardId);
+}
+
 export function _resetTracking() {
   _suppressEvents = true;
   initTracking();
@@ -200,6 +245,7 @@ useGameStore.subscribe((state) => {
     prevWasteTopId = state.waste.length > 0 ? state.waste[state.waste.length - 1].id : null;
     prevTableauEmpty = state.tableau.map(t => t.length === 0);
     prevFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+    prevFaceDownIds = new Set(state.tableau.flat().filter(c => !c.faceUp).map(c => c.id));
     prevTableauLengths = state.tableau.map(t => t.length);
     return;
   }
@@ -212,31 +258,31 @@ useGameStore.subscribe((state) => {
       // Card was placed on foundation
       const topCard = state.foundations[i][state.foundations[i].length - 1];
       if (topCard) {
-        let damage = topCard.rank;
+        let damage: number = topCard.rank;
 
-        // Empowered: double damage, then clear
-        if (combat.empowered) {
-          damage *= 2;
-          combat.setEmpowered(false);
+        // Empowered: multiply damage, then clear
+        if (combat.empowerMultiplier > 1.0) {
+          damage = Math.round(damage * combat.empowerMultiplier);
+          combat.setEmpowerMultiplier(1.0);
         }
 
         combat.dealDamageToMonster(damage);
 
-        // Face card special effects
+        // Royal Awakening — Tier 3 (Awakens!)
         if (topCard.rank === 11) {
-          // Jack: apply poison (3 turns)
           combat.setPoisonTurns(3);
+          combat.emitFaceCardEvent('Jack Awakens!');
         } else if (topCard.rank === 12) {
-          // Queen: heal hero 5 HP
-          combat.healHero(5, 'Queen Heal!');
+          combat.healHero(5);
+          combat.emitFaceCardEvent('Queen Awakens!');
         } else if (topCard.rank === 13) {
-          // King: empower next placement
-          combat.setEmpowered(true);
+          combat.setEmpowerMultiplier(2.0);
+          combat.emitFaceCardEvent('King Awakens!');
         }
 
-        // Ace: heal hero 3 HP
         if (topCard.rank === 1) {
-          combat.healHero(3, 'Ace Blessing!');
+          combat.healHero(3);
+          combat.emitFaceCardEvent('Ace Awakens!');
         }
       }
     } else if (currentLengths[i] < prevFoundationLengths[i]) {
@@ -301,6 +347,59 @@ useGameStore.subscribe((state) => {
   prevWasteLength = currentWasteLength;
   prevWasteTopId = state.waste.length > 0 ? state.waste[state.waste.length - 1].id : null;
 
+  // --- 3b. Detect face card plays (tier 2 effects) ---
+  const currentFaceCardPiles = buildFaceCardPiles(state);
+  const isUndoMove = state.moves < prevMoves;
+  if (isUndoMove) {
+    // Undo: find face cards that moved back — remove from triggered set and reverse effects
+    for (const [cardId, prevPile] of prevFaceCardPiles) {
+      const currentPile = currentFaceCardPiles.get(cardId);
+      if (currentPile !== prevPile && playTriggeredCards.has(cardId)) {
+        playTriggeredCards.delete(cardId);
+        // Find the card to get its rank
+        const card = state.tableau.flat().find(c => c.id === cardId) ?? state.waste.find(c => c.id === cardId);
+        if (card) {
+          if (card.rank === 1) {
+            const s = useCombatStore.getState();
+            useCombatStore.setState({ heroHp: Math.max(0, s.heroHp - 2) });
+          }
+          if (card.rank === 11) combat.setPoisonTurns(0);
+          if (card.rank === 12) {
+            const s = useCombatStore.getState();
+            useCombatStore.setState({ heroHp: Math.max(0, s.heroHp - 3) });
+          }
+          if (card.rank === 13) combat.setEmpowerMultiplier(1.0);
+        }
+      }
+    }
+  } else {
+    // Forward move: detect face cards that changed piles (not to foundation)
+    for (const [cardId, currentPile] of currentFaceCardPiles) {
+      if (!currentPile.startsWith('tableau-')) continue;
+      const prevPile = prevFaceCardPiles.get(cardId);
+      if (prevPile !== undefined && prevPile !== currentPile && !playTriggeredCards.has(cardId)) {
+        // Face card moved to a new tableau pile — check if it's the bottom card of the moved group
+        const pileIdx = parseInt(currentPile.split('-')[1]);
+        const pile = state.tableau[pileIdx];
+        const prevLen = prevTableauLengths[pileIdx];
+        const growth = pile.length - prevLen;
+        if (growth > 0) {
+          const bottomOfMoved = pile[pile.length - growth];
+          if (bottomOfMoved && bottomOfMoved.id === cardId) {
+            playTriggeredCards.add(cardId);
+            const card = bottomOfMoved;
+            // Royal Awakening — Tier 2 (Rises!)
+            if (card.rank === 1) { combat.healHero(2); combat.emitFaceCardEvent('Ace Rises!'); }
+            if (card.rank === 11) { combat.setPoisonTurns(2); combat.emitFaceCardEvent('Jack Rises!'); }
+            if (card.rank === 12) { combat.healHero(3); combat.emitFaceCardEvent('Queen Rises!'); }
+            if (card.rank === 13) { combat.setEmpowerMultiplier(1.5); combat.emitFaceCardEvent('King Rises!'); }
+          }
+        }
+      }
+    }
+  }
+  prevFaceCardPiles = currentFaceCardPiles;
+
   // --- 4. Detect tableau column clears ---
   const currentTableauEmpty = state.tableau.map(t => t.length === 0);
   for (let i = 0; i < 7; i++) {
@@ -321,18 +420,47 @@ useGameStore.subscribe((state) => {
 
   // --- 5. Detect face-down card reveals (#8) ---
   const currentFaceDownCounts = state.tableau.map(t => t.filter(c => !c.faceUp).length);
+  const currentFaceDownIds = new Set(state.tableau.flat().filter(c => !c.faceUp).map(c => c.id));
   for (let i = 0; i < 7; i++) {
     if (currentFaceDownCounts[i] < prevFaceDownCounts[i]) {
       // A face-down card was revealed — deal 2 chip damage per reveal
       const reveals = prevFaceDownCounts[i] - currentFaceDownCounts[i];
       combat.dealDamageToMonster(2 * reveals, 'Reveal!');
+
+      // Royal Awakening — Tier 1 (Stirs...)
+      for (const card of state.tableau[i]) {
+        if (card.faceUp && prevFaceDownIds.has(card.id)) {
+          if (card.rank === 1) { combat.healHero(1); combat.emitFaceCardEvent('Ace Stirs...'); }
+          if (card.rank === 11) { combat.setPoisonTurns(1); combat.emitFaceCardEvent('Jack Stirs...'); }
+          if (card.rank === 12) { combat.healHero(2); combat.emitFaceCardEvent('Queen Stirs...'); }
+          if (card.rank === 13) { combat.setEmpowerMultiplier(1.25); combat.emitFaceCardEvent('King Stirs...'); }
+        }
+      }
     } else if (currentFaceDownCounts[i] > prevFaceDownCounts[i]) {
       // Undo: card flipped back to face-down — heal monster
       const unreveals = currentFaceDownCounts[i] - prevFaceDownCounts[i];
       combat.healMonster(2 * unreveals);
+
+      // Undo tier 1 face card effects
+      for (const card of state.tableau[i]) {
+        if (!card.faceUp && !prevFaceDownIds.has(card.id)) {
+          // This card was just flipped back to face-down (undo)
+          if (card.rank === 1) {
+            const s = useCombatStore.getState();
+            useCombatStore.setState({ heroHp: Math.max(0, s.heroHp - 1) });
+          }
+          if (card.rank === 11) combat.setPoisonTurns(0);
+          if (card.rank === 12) {
+            const s = useCombatStore.getState();
+            useCombatStore.setState({ heroHp: Math.max(0, s.heroHp - 2) });
+          }
+          if (card.rank === 13) combat.setEmpowerMultiplier(1.0);
+        }
+      }
     }
   }
   prevFaceDownCounts = currentFaceDownCounts;
+  prevFaceDownIds = currentFaceDownIds;
 
   // --- 6. Detect combo attacks — 3+ card tableau-to-tableau moves (#11) ---
   const currentTableauLengths = state.tableau.map(t => t.length);
