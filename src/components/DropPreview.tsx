@@ -10,13 +10,14 @@ export default function DropPreview({ targetPileId }: DropPreviewProps) {
   const text = getDropPreview(dragState.cards, targetPileId, dragState.sourcePileId ?? undefined);
   if (!text) return null;
 
-  const isDamage = text.startsWith('-');
-  const isFaceEffect = text.includes('Rises') || text.includes('Awakens');
-  const colorClass = isFaceEffect ? 'drop-preview-royal' : isDamage ? 'drop-preview-damage' : '';
+  const hasFaceEffect = text.includes('Rises') || text.includes('Awakens');
+  // Split on " · " to separate damage from face card effect
+  const parts = text.split(' · ');
 
   return (
-    <div className={`drop-preview ${colorClass}`}>
-      {text}
+    <div className={`drop-preview ${hasFaceEffect ? 'drop-preview-royal' : 'drop-preview-damage'}`}>
+      <span className="drop-preview-dmg">{parts[0]}</span>
+      {parts[1] && <span className="drop-preview-effect">{parts[1]}</span>}
     </div>
   );
 }

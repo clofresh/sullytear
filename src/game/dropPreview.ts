@@ -3,6 +3,21 @@ import { useCombatStore, _hasPlayTriggered } from './combatStore';
 
 const FACE_NAMES: Record<number, string> = { 1: 'Ace', 11: 'Jack', 12: 'Queen', 13: 'King' };
 
+// Effect descriptions per face card per tier
+const TIER_3_EFFECTS: Record<number, string> = {
+  1: 'Heal 3',
+  11: 'Poison 3',
+  12: 'Heal 5',
+  13: 'Empower 2x',
+};
+
+const TIER_2_EFFECTS: Record<number, string> = {
+  1: 'Heal 2',
+  11: 'Poison 2',
+  12: 'Heal 3',
+  13: 'Empower 1.5x',
+};
+
 function isFaceCard(rank: number): boolean {
   return rank in FACE_NAMES;
 }
@@ -17,13 +32,10 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
     const multiplier = combat.empowerMultiplier;
     const damage: number = multiplier !== 1.0 ? Math.round(rank * multiplier) : rank;
     const faceName = FACE_NAMES[rank];
-    const dmgStr = `-${damage}`;
+    const dmgStr = multiplier !== 1.0 ? `-${damage} dmg (${multiplier}x)` : `-${damage} dmg`;
 
-    if (multiplier !== 1.0 && !faceName) {
-      return `${dmgStr} (${multiplier}x!)`;
-    }
     if (faceName) {
-      return `${dmgStr} ${faceName} Awakens!`;
+      return `${dmgStr} · ${faceName} Awakens! ${TIER_3_EFFECTS[rank]}`;
     }
     return dmgStr;
   }
@@ -31,12 +43,12 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
   if (targetPileId.startsWith('tableau-')) {
     // Non-face from waste: show damage
     if (sourcePileId === 'waste' && !isFaceCard(rank)) {
-      return `-${rank}`;
+      return `-${rank} dmg`;
     }
-    // Face card from tableau: show Rises! if not already triggered
+    // Face card from tableau: show Rises! + effect if not already triggered
     if (isFaceCard(rank) && sourcePileId?.startsWith('tableau-')) {
       if (_hasPlayTriggered(card.id)) return null;
-      return `${FACE_NAMES[rank]} Rises!`;
+      return `${FACE_NAMES[rank]} Rises! ${TIER_2_EFFECTS[rank]}`;
     }
     return null;
   }

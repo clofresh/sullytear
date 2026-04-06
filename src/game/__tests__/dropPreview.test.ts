@@ -22,39 +22,56 @@ describe('getDropPreview', () => {
   });
 
   describe('Foundation targets', () => {
-    it('non-face card shows damage', () => {
-      expect(getDropPreview([makeCard('spades', 5)], 'foundation-0')).toBe('-5');
+    it('non-face card shows damage only', () => {
+      expect(getDropPreview([makeCard('spades', 5)], 'foundation-0')).toBe('-5 dmg');
     });
 
-    it('Ace shows damage + Awakens label', () => {
-      expect(getDropPreview([makeCard('hearts', 1)], 'foundation-0')).toBe('-1 Ace Awakens!');
+    it('Ace shows damage + effect description', () => {
+      expect(getDropPreview([makeCard('hearts', 1)], 'foundation-0')).toBe('-1 dmg · Ace Awakens! Heal 3');
     });
 
-    it('Jack shows damage + Awakens label', () => {
-      expect(getDropPreview([makeCard('hearts', 11)], 'foundation-0')).toBe('-11 Jack Awakens!');
+    it('Jack shows damage + effect description', () => {
+      expect(getDropPreview([makeCard('hearts', 11)], 'foundation-0')).toBe('-11 dmg · Jack Awakens! Poison 3');
     });
 
-    it('Queen shows damage + Awakens label', () => {
-      expect(getDropPreview([makeCard('hearts', 12)], 'foundation-0')).toBe('-12 Queen Awakens!');
+    it('Queen shows damage + effect description', () => {
+      expect(getDropPreview([makeCard('hearts', 12)], 'foundation-0')).toBe('-12 dmg · Queen Awakens! Heal 5');
     });
 
-    it('King shows damage + Awakens label', () => {
-      expect(getDropPreview([makeCard('hearts', 13)], 'foundation-0')).toBe('-13 King Awakens!');
+    it('King shows damage + effect description', () => {
+      expect(getDropPreview([makeCard('hearts', 13)], 'foundation-0')).toBe('-13 dmg · King Awakens! Empower 2x');
     });
 
-    it('empowered card shows multiplied damage', () => {
+    it('empowered non-face card shows multiplied damage', () => {
       useCombatStore.getState().setEmpowerMultiplier(2.0);
-      expect(getDropPreview([makeCard('hearts', 5)], 'foundation-0')).toBe('-10 (2x!)');
+      expect(getDropPreview([makeCard('hearts', 5)], 'foundation-0')).toBe('-10 dmg (2x)');
+    });
+
+    it('empowered face card shows multiplied damage + effect', () => {
+      useCombatStore.getState().setEmpowerMultiplier(1.5);
+      expect(getDropPreview([makeCard('hearts', 11)], 'foundation-0')).toBe('-17 dmg (1.5x) · Jack Awakens! Poison 3');
     });
   });
 
   describe('Tableau targets', () => {
     it('non-face card from waste shows damage', () => {
-      expect(getDropPreview([makeCard('spades', 5)], 'tableau-0', 'waste')).toBe('-5');
+      expect(getDropPreview([makeCard('spades', 5)], 'tableau-0', 'waste')).toBe('-5 dmg');
     });
 
-    it('face card first play shows Rises label', () => {
-      expect(getDropPreview([makeCard('spades', 12)], 'tableau-0', 'tableau-1')).toBe('Queen Rises!');
+    it('Ace first play shows Rises + effect', () => {
+      expect(getDropPreview([makeCard('hearts', 1)], 'tableau-0', 'tableau-1')).toBe('Ace Rises! Heal 2');
+    });
+
+    it('Jack first play shows Rises + effect', () => {
+      expect(getDropPreview([makeCard('spades', 11)], 'tableau-0', 'tableau-1')).toBe('Jack Rises! Poison 2');
+    });
+
+    it('Queen first play shows Rises + effect', () => {
+      expect(getDropPreview([makeCard('spades', 12)], 'tableau-0', 'tableau-1')).toBe('Queen Rises! Heal 3');
+    });
+
+    it('King first play shows Rises + effect', () => {
+      expect(getDropPreview([makeCard('spades', 13)], 'tableau-0', 'tableau-1')).toBe('King Rises! Empower 1.5x');
     });
 
     it('face card already triggered returns null', () => {
