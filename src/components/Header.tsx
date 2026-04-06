@@ -31,7 +31,7 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-left">
-        <span className="header-title">Solitaire</span>
+        <span className="header-title">Sullytear</span>
         {isRunActive && (
           <button className="header-btn" onClick={handleAbandon}>Abandon</button>
         )}

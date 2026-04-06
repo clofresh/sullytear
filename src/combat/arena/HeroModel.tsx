@@ -9,26 +9,58 @@ export default function HeroModel() {
   const glowRef = useRef<THREE.PointLight>(null!);
   const lastEventId = useRef(-1);
   const hitTime = useRef(0);
+  // Attack animation: anticipation -> strike -> return
+  const attackPhase = useRef<'idle' | 'anticipate' | 'strike' | 'return'>('idle');
+  const attackTimer = useRef(0);
 
   useFrame((_, delta) => {
     const cs = useCombatStore.getState();
     const group = groupRef.current;
     if (!group) return;
 
-    // Detect monster-attack events -> trigger shake
+    // Detect events
     if (cs.eventId !== lastEventId.current && cs.lastEvent) {
       lastEventId.current = cs.eventId;
       if (cs.lastEvent.type === 'monster-attack') {
         hitTime.current = 0.4;
       }
+      if (cs.lastEvent.type === 'hero-attack') {
+        attackPhase.current = 'anticipate';
+        attackTimer.current = 0;
+      }
     }
 
-    // Shake along local Z (maps to world X after Y rotation)
-    if (hitTime.current > 0) {
+    // Attack animation (local Z: +Z = toward monster after Y rotation)
+    if (attackPhase.current !== 'idle') {
+      attackTimer.current += delta;
+      if (attackPhase.current === 'anticipate') {
+        // Wind up: pull back over 0.12s
+        const t = Math.min(attackTimer.current / 0.12, 1);
+        group.position.z = -0.3 * t;
+        group.rotation.x = -0.1 * t;
+        if (t >= 1) { attackPhase.current = 'strike'; attackTimer.current = 0; }
+      } else if (attackPhase.current === 'strike') {
+        // Lunge forward over 0.08s
+        const t = Math.min(attackTimer.current / 0.08, 1);
+        group.position.z = -0.3 + 0.7 * t;
+        group.rotation.x = -0.1 + 0.2 * t;
+        if (t >= 1) { attackPhase.current = 'return'; attackTimer.current = 0; }
+      } else if (attackPhase.current === 'return') {
+        // Ease back over 0.25s
+        const t = Math.min(attackTimer.current / 0.25, 1);
+        const ease = t * t * (3 - 2 * t); // smoothstep
+        group.position.z = 0.4 * (1 - ease);
+        group.rotation.x = 0.1 * (1 - ease);
+        if (t >= 1) { attackPhase.current = 'idle'; group.position.z = 0; group.rotation.x = 0; }
+      }
+    }
+
+    // Shake along local Z when hit (only if not mid-attack)
+    if (hitTime.current > 0 && attackPhase.current === 'idle') {
       hitTime.current -= delta;
       const intensity = hitTime.current * 8;
       group.position.z = Math.sin(hitTime.current * 60) * intensity * 0.05;
-    } else {
+    } else if (attackPhase.current === 'idle' && hitTime.current <= 0) {
       group.position.z = 0;
     }
 
