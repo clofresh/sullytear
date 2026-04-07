@@ -1,0 +1,24 @@
+name: Validate models
+
+on:
+  pull_request:
+    paths:
+      - 'public/models/**'
+      - 'scripts/validate-gltf.mjs'
+      - '.github/workflows/validate-models.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/models/**'
+      - 'scripts/validate-gltf.mjs'
+      - '.github/workflows/validate-models.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/validate-gltf.mjs
