@@ -31,4 +31,13 @@ describe('Difficulty Config', () => {
     expect(n.atkMultiplier).toBeGreaterThan(h.atkMultiplier);
     expect(n.goldMultiplier).toBeGreaterThan(h.goldMultiplier);
   });
+
+  it('starting armor/defense scale down with difficulty', () => {
+    expect(DIFFICULTY_CONFIG.normal.startArmor).toBe(10);
+    expect(DIFFICULTY_CONFIG.normal.startDefense).toBe(15);
+    expect(DIFFICULTY_CONFIG.hard.startArmor).toBe(5);
+    expect(DIFFICULTY_CONFIG.hard.startDefense).toBe(5);
+    expect(DIFFICULTY_CONFIG.nightmare.startArmor).toBe(0);
+    expect(DIFFICULTY_CONFIG.nightmare.startDefense).toBe(0);
+  });
 });

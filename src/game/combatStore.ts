@@ -10,6 +10,8 @@ export interface EncounterConfig {
   monsterAttackDamage: number;
   heroMaxHp: number;
   heroStartHp?: number;
+  heroStartArmor?: number;
+  heroStartDefense?: number;
 }
 
 const DEFAULT_ENCOUNTER: EncounterConfig = {
@@ -84,8 +86,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
     set({
       heroHp: config.heroStartHp ?? config.heroMaxHp,
       heroMaxHp: config.heroMaxHp,
-      heroArmor: 0,
-      heroDefense: 0,
+      heroArmor: config.heroStartArmor ?? 0,
+      heroDefense: config.heroStartDefense ?? 0,
       monsterHp: config.monsterMaxHp,
       monsterMaxHp: config.monsterMaxHp,
       monsterName: config.monsterName,

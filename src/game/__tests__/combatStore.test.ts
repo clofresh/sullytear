@@ -1152,6 +1152,32 @@ describe('Combat Store', () => {
       expect(useCombatStore.getState().monsterId).toBe('slime');
     });
 
+    it('startCombat applies heroStartArmor and heroStartDefense', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+        heroStartArmor: 10,
+        heroStartDefense: 15,
+      });
+      const s = useCombatStore.getState();
+      expect(s.heroArmor).toBe(10);
+      expect(s.heroDefense).toBe(15);
+    });
+
+    it('startCombat without heroStartArmor/Defense defaults to 0', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+      });
+      const s = useCombatStore.getState();
+      expect(s.heroArmor).toBe(0);
+      expect(s.heroDefense).toBe(0);
+    });
+
     it('startCombat without monsterId defaults to dragon', () => {
       useCombatStore.getState().startCombat({
         monsterName: 'Dragon',
