@@ -64,18 +64,18 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw the one card (stock → waste) — 1 draw damage
+      // Draw the one card (stock → waste) — 5 damage (rank)
       useGameStore.getState().drawFromStock();
       // Now stock is empty — draw again to trigger cycle — monster attack damage
       useGameStore.getState().drawFromStock();
 
-      // Hero takes 1 (draw) + monsterAttackDamage (cycle)
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 1 - attackDmg);
+      // Hero takes 5 (rank) + monsterAttackDamage (cycle)
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 5 - attackDmg);
     });
   });
 
   describe('Stock draw damages hero', () => {
-    it('deals 1 damage per stock draw', () => {
+    it('deals card rank damage per stock draw', () => {
       const initialHeroHp = useCombatStore.getState().heroMaxHp;
 
       setupGameState({
@@ -84,11 +84,11 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw twice — each draw deals 1 damage
+      // Draw twice — first draws the top card (4), then (3) → 4 + 3 = 7 damage
       useGameStore.getState().drawFromStock();
       useGameStore.getState().drawFromStock();
 
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 2);
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 7);
     });
   });
 
