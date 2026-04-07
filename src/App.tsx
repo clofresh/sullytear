@@ -11,12 +11,17 @@ import RunStartScreen from './components/RunStartScreen';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useRunStore } from './game/runStore';
 import { DragProvider } from './game/DragContext';
+import DebugPage from './combat/arena/DebugPage';
 import './App.css';
 
 const AnimatedBackground = lazy(() => import('./background/AnimatedBackground'));
 
 export default function App() {
   const isRunActive = useRunStore(s => s.isRunActive);
+  
+  if (window.location.hash === '#debug-monsters') {
+    return <DebugPage />;
+  }
 
   return (
     <DragProvider>
