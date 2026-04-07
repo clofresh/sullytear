@@ -67,7 +67,9 @@ export default function GameBoard() {
     // Fallback: if elementsFromPoint missed but we have valid targets,
     // find the closest valid target pile to the pointer (within max snap distance)
     if (!targetPileId && validTargets.size > 0) {
-      const MAX_SNAP_DISTANCE = cardWidth * 1.2;
+      // Stock drags are very lenient — snap to waste from anywhere
+      const isStockDrag = dragSource.pileId === 'stock';
+      const MAX_SNAP_DISTANCE = isStockDrag ? Infinity : cardWidth * 1.2;
       let bestDist = Infinity;
       for (const vtId of validTargets) {
         const el = document.querySelector(`[data-pile-id="${vtId}"]`);
