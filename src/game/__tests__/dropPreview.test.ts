@@ -11,6 +11,13 @@ function makeCard(suit: Suit, rank: Rank, faceUp = true): Card {
 function resetAll() {
   _withSuppressedEvents(() => {
     useGameStore.getState().newGame();
+    // Empty the tableau so source-pile lookups in getDropPreview can never
+    // collide with synthetic test cards (e.g. `spades-5`) that happen to
+    // share an id with a freshly-dealt card. See issue: flaky dropPreview
+    // "Tableau targets" tests.
+    useGameStore.setState({
+      tableau: [[], [], [], [], [], [], []],
+    });
   });
   useCombatStore.getState().resetCombat();
   _resetTracking();

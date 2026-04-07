@@ -9,6 +9,7 @@ import CombatArena from './combat/arena/CombatArena';
 import DragTrail from './components/DragTrail';
 import RunStartScreen from './components/RunStartScreen';
 import { useRunStore } from './game/runStore';
+import { DragProvider } from './game/DragContext';
 import './App.css';
 
 const AnimatedBackground = lazy(() => import('./background/AnimatedBackground'));
@@ -17,7 +18,7 @@ export default function App() {
   const isRunActive = useRunStore(s => s.isRunActive);
 
   return (
-    <>
+    <DragProvider>
       <Suspense fallback={null}>
         <AnimatedBackground />
       </Suspense>
@@ -35,6 +36,6 @@ export default function App() {
           <DragTrail />
         </div>
       )}
-    </>
+    </DragProvider>
   );
 }

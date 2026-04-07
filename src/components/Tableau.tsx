@@ -1,9 +1,9 @@
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex, canMoveToTableau } from '../game/rules';
 import { FACE_DOWN_OFFSET } from '../utils/constants';
-import { dragState } from '../game/dragState';
+import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
 import type { PileId } from '../game/types';
 import DropPreview from './DropPreview';
 
@@ -31,37 +31,13 @@ export default function Tableau({
   const dragIdxRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragSource, setIsDragSource] = useState(false);
-  const [isValidTarget, setIsValidTarget] = useState(false);
 
-  // Poll for valid drop target status during drag
-  useEffect(() => {
-    const check = () => {
-      if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0 || dragState.sourcePileId === 'stock') {
-        setIsValidTarget(false);
-        dragState.validTargets.delete(pileId);
-        return;
-      }
-      const valid = canMoveToTableau(dragState.cards, pile);
-      setIsValidTarget(valid);
-      if (valid) {
-        dragState.validTargets.add(pileId);
-      } else {
-        dragState.validTargets.delete(pileId);
-      }
-    };
-
-    const interval = setInterval(check, 100);
-    return () => {
-      clearInterval(interval);
-      dragState.validTargets.delete(pileId);
-    };
-  }, [pile, pileId]);
-
-  // Clear valid target when drag state changes (via store updates)
-  const moves = useGameStore(s => s.moves);
-  useEffect(() => {
-    setIsValidTarget(false);
-  }, [moves]);
+  const isValidTarget = useDropTargetValidation(pileId, (drag) => {
+    if (drag.sourcePileId === pileId) return false;
+    if (drag.cards.length === 0) return false;
+    if (drag.sourcePileId === 'stock') return false;
+    return canMoveToTableau([...drag.cards], pile);
+  });
 
   const handleDoubleClick = (cardIndex: number) => {
     if (cardIndex !== pile.length - 1) return;
@@ -131,7 +107,6 @@ export default function Tableau({
     }
     dragIdxRef.current = null;
     setIsDragSource(false);
-    setIsValidTarget(false);
     onDragEnd?.({ x: info.event.clientX, y: info.event.clientY });
   }, [onDragEnd]);
 

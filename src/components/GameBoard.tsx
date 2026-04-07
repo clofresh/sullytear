@@ -5,18 +5,18 @@ import Foundation from './Foundation';
 import Tableau from './Tableau';
 import { useGameStore } from '../game/store';
 import { useResponsive } from '../hooks/useResponsive';
-import { dragState } from '../game/dragState';
+import { useDragApi } from '../game/DragContext';
 import './GameBoard.css';
 
 export default function GameBoard() {
   const { cardWidth, cardHeight, gap, faceUpOffset } = useResponsive();
   const boardRef = useRef<HTMLDivElement>(null);
   const dragSourceRef = useRef<{ pileId: string; cardIndex: number } | null>(null);
+  const dragApi = useDragApi();
 
   const handleDragStart = useCallback((pileId: string, cardIndex: number) => {
     dragSourceRef.current = { pileId, cardIndex };
 
-    // Populate shared drag state for valid-target highlighting
     const state = useGameStore.getState();
     let cards: import('../game/types').Card[] = [];
     if (pileId === 'stock') {
@@ -27,24 +27,17 @@ export default function GameBoard() {
       const tabIdx = parseInt(pileId.split('-')[1]);
       cards = state.tableau[tabIdx].slice(cardIndex);
     }
-    dragState.active = true;
-    dragState.cards = cards;
-    dragState.sourcePileId = pileId;
-  }, []);
+    dragApi.start(cards, pileId);
+  }, [dragApi]);
 
   const handleDragEnd = useCallback((point: { x: number; y: number }) => {
     const dragSource = dragSourceRef.current;
     if (!dragSource) return;
     dragSourceRef.current = null;
 
-    // Capture valid targets before clearing drag state
-    const validTargets = new Set(dragState.validTargets);
-
-    // Clear shared drag state
-    dragState.active = false;
-    dragState.cards = [];
-    dragState.sourcePileId = '';
-    dragState.validTargets.clear();
+    // Capture valid targets, then clear drag state.
+    const captured = dragApi.end();
+    const validTargets = captured.validTargets;
 
     // Read fresh state from store (avoid stale closures)
     const state = useGameStore.getState();
@@ -112,7 +105,7 @@ export default function GameBoard() {
         to: targetPileId as `tableau-${number}` | `foundation-${number}`,
       });
     }
-  }, []);
+  }, [cardWidth, dragApi]);
 
   return (
     <div

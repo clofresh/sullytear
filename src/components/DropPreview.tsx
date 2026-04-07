@@ -1,5 +1,5 @@
 import { getDropPreview } from '../game/dropPreview';
-import { dragState } from '../game/dragState';
+import { useDragState } from '../game/DragContext';
 import './DropPreview.css';
 
 interface DropPreviewProps {
@@ -7,11 +7,11 @@ interface DropPreviewProps {
 }
 
 export default function DropPreview({ targetPileId }: DropPreviewProps) {
-  const text = getDropPreview(dragState.cards, targetPileId, dragState.sourcePileId ?? undefined);
+  const drag = useDragState();
+  const text = getDropPreview([...drag.cards], targetPileId, drag.sourcePileId || undefined);
   if (!text) return null;
 
   const hasFaceEffect = text.includes('Rises') || text.includes('Awakens');
-  // Split on " · " to separate damage from face card effect
   const parts = text.split(' · ');
 
   return (
