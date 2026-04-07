@@ -31,71 +31,71 @@ export default function DragonModel() {
   const wingColor = '#6a1a00';
 
   return (
-    <group ref={groupRef} position={[0, -0.3, 0]}>
+    <group ref={groupRef}>
       {/* Body */}
-      <mesh position={[0, 0, 0]}>
+      <mesh position={[0, 0.3, 0]}>
         <capsuleGeometry args={[0.4, 0.6, 8, 16]} />
         <meshStandardMaterial color={bodyColor} roughness={0.7} />
       </mesh>
 
       {/* Belly plate */}
-      <mesh position={[0, -0.05, 0.3]}>
+      <mesh position={[0, 0.65, 0.3]}>
         <capsuleGeometry args={[0.25, 0.3, 6, 12]} />
         <meshStandardMaterial color={bellyColor} roughness={0.6} />
       </mesh>
 
       {/* Neck */}
-      <mesh position={[0, 0.5, 0.15]} rotation={[0.3, 0, 0]}>
+      <mesh position={[0, 0.8, 0.15]} rotation={[0.3, 0, 0]}>
         <capsuleGeometry args={[0.15, 0.3, 6, 8]} />
         <meshStandardMaterial color={bodyColor} roughness={0.7} />
       </mesh>
 
       {/* Head */}
-      <mesh position={[0, 0.8, 0.25]}>
+      <mesh position={[0, 1.1, 0.25]}>
         <sphereGeometry args={[0.22, 12, 10]} />
         <meshStandardMaterial color={bodyColor} roughness={0.7} />
       </mesh>
 
       {/* Snout */}
-      <mesh position={[0, 0.75, 0.45]} rotation={[0.2, 0, 0]}>
+      <mesh position={[0, 1.05, 0.45]} rotation={[0.2, 0, 0]}>
         <boxGeometry args={[0.15, 0.1, 0.2]} />
         <meshStandardMaterial color={bodyColor} roughness={0.7} />
       </mesh>
 
       {/* Eyes */}
-      <mesh position={[-0.1, 0.85, 0.4]}>
+      <mesh position={[-0.1, 1.15, 0.4]}>
         <sphereGeometry args={[0.04, 8, 8]} />
         <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.6} />
       </mesh>
-      <mesh position={[0.1, 0.85, 0.4]}>
+      <mesh position={[0.1, 1.15, 0.4]}>
         <sphereGeometry args={[0.04, 8, 8]} />
         <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.6} />
       </mesh>
 
       {/* Horns */}
-      <mesh position={[-0.12, 0.95, 0.15]} rotation={[0.3, 0, -0.3]}>
+      <mesh position={[-0.12, 1.25, 0.15]} rotation={[0.3, 0, -0.3]}>
         <coneGeometry args={[0.03, 0.2, 4]} />
         <meshStandardMaterial color="#5a1a00" />
       </mesh>
-      <mesh position={[0.12, 0.95, 0.15]} rotation={[0.3, 0, 0.3]}>
+      <mesh position={[0.12, 1.25, 0.15]} rotation={[0.3, 0, 0.3]}>
         <coneGeometry args={[0.03, 0.2, 4]} />
         <meshStandardMaterial color="#5a1a00" />
       </mesh>
 
       {/* Left wing */}
-      <mesh ref={wingLRef} position={[-0.4, 0.3, -0.1]} rotation={[0, 0, -0.6]}>
+      <mesh ref={wingLRef} position={[-0.4, 0.6, -0.1]} rotation={[0, 0, -0.6]}>
         <planeGeometry args={[0.8, 0.5, 1, 1]} />
         <meshStandardMaterial color={wingColor} side={THREE.DoubleSide} roughness={0.8} />
       </mesh>
 
       {/* Right wing */}
-      <mesh ref={wingRRef} position={[0.4, 0.3, -0.1]} rotation={[0, 0, 0.6]}>
+      <mesh ref={wingRRef} position={[0.4, 0.6, -0.1]} rotation={[0, 0, 0.6]}>
         <planeGeometry args={[0.8, 0.5, 1, 1]} />
         <meshStandardMaterial color={wingColor} side={THREE.DoubleSide} roughness={0.8} />
       </mesh>
 
       {/* Tail */}
-      <group ref={tailRef} position={[0, -0.2, -0.4]}>
+      <group ref={tailRef} position={[0, 0.1, -0.4]}>
         <mesh rotation={[0.5, 0, 0]}>
           <capsuleGeometry args={[0.08, 0.4, 4, 8]} />
           <meshStandardMaterial color={bodyColor} roughness={0.7} />
@@ -108,11 +108,11 @@ export default function DragonModel() {
       </group>
 
       {/* Front claws */}
-      <mesh position={[-0.3, -0.35, 0.15]} rotation={[0, 0, -0.2]}>
+      <mesh position={[-0.3, 0.05, 0.15]} rotation={[0, 0, -0.2]}>
         <capsuleGeometry args={[0.07, 0.25, 4, 8]} />
         <meshStandardMaterial color={bodyColor} />
       </mesh>
-      <mesh position={[0.3, -0.35, 0.15]} rotation={[0, 0, 0.2]}>
+      <mesh position={[0.3, 0.05, 0.15]} rotation={[0, 0, 0.2]}>
         <capsuleGeometry args={[0.07, 0.25, 4, 8]} />
         <meshStandardMaterial color={bodyColor} />
       </mesh>

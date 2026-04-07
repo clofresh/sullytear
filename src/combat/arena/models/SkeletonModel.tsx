@@ -24,51 +24,51 @@ export default function SkeletonModel() {
   const bone = '#e8e0d0';
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef}>
       {/* Skull */}
-      <mesh position={[0, 0.85, 0]}>
+      <mesh position={[0, 1.35, 0]}>
         <sphereGeometry args={[0.25, 12, 10]} />
         <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Eye sockets — dark inset */}
-      <mesh position={[-0.08, 0.9, 0.2]}>
+      <mesh position={[-0.08, 1.4, 0.2]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} />
       </mesh>
-      <mesh position={[0.08, 0.9, 0.2]}>
+      <mesh position={[0.08, 1.4, 0.2]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#ff3333" emissive="#ff2222" emissiveIntensity={0.8} />
       </mesh>
 
       {/* Jaw */}
-      <mesh ref={jawRef} position={[0, 0.73, 0.08]}>
+      <mesh ref={jawRef} position={[0, 1.23, 0.08]}>
         <boxGeometry args={[0.18, 0.06, 0.15]} />
         <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Spine */}
-      <mesh position={[0, 0.4, 0]}>
+      <mesh position={[0, 0.9, 0]}>
         <cylinderGeometry args={[0.04, 0.04, 0.6, 6]} />
         <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Ribcage */}
       {[-0.12, 0, 0.12].map((offset, i) => (
-        <mesh key={i} position={[0, 0.4 + offset, 0]}>
+        <mesh key={i} position={[0, 0.9 + offset, 0]}>
           <torusGeometry args={[0.15, 0.02, 4, 12, Math.PI]} />
           <meshStandardMaterial color={bone} roughness={0.8} />
         </mesh>
       ))}
 
       {/* Left arm */}
-      <mesh position={[-0.25, 0.35, 0]} rotation={[0, 0, -0.5]}>
+      <mesh position={[-0.25, 0.85, 0]} rotation={[0, 0, -0.5]}>
         <cylinderGeometry args={[0.025, 0.025, 0.5, 4]} />
         <meshStandardMaterial color={bone} />
       </mesh>
 
       {/* Right arm + sword */}
-      <group ref={swordRef} position={[0.25, 0.35, 0]}>
+      <group ref={swordRef} position={[0.25, 0.85, 0]}>
         <mesh rotation={[0, 0, 0.5]}>
           <cylinderGeometry args={[0.025, 0.025, 0.5, 4]} />
           <meshStandardMaterial color={bone} />
@@ -85,17 +85,17 @@ export default function SkeletonModel() {
       </group>
 
       {/* Pelvis */}
-      <mesh position={[0, 0.05, 0]}>
+      <mesh position={[0, 0.55, 0]}>
         <boxGeometry args={[0.25, 0.1, 0.12]} />
         <meshStandardMaterial color={bone} roughness={0.8} />
       </mesh>
 
       {/* Legs */}
-      <mesh position={[-0.08, -0.25, 0]}>
+      <mesh position={[-0.08, 0.25, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
         <meshStandardMaterial color={bone} />
       </mesh>
-      <mesh position={[0.08, -0.25, 0]}>
+      <mesh position={[0.08, 0.25, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
         <meshStandardMaterial color={bone} />
       </mesh>

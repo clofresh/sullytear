@@ -25,35 +25,35 @@ export default function SlimeModel() {
   });
 
   return (
-    <group position={[0, -0.5, 0]}>
+    <group>
       {/* Body — flattened sphere */}
-      <mesh ref={bodyRef} position={[0, -0.3, 0]}>
+      <mesh ref={bodyRef} position={[0, 0.2, 0]}>
         <sphereGeometry args={[0.7, 24, 16]} />
         <meshStandardMaterial color="#44cc44" roughness={0.2} metalness={0.1} />
       </mesh>
 
       {/* Left eye */}
-      <mesh ref={eyeLRef} position={[-0.2, 0.15, 0.55]}>
+      <mesh ref={eyeLRef} position={[-0.2, 0.65, 0.55]}>
         <sphereGeometry args={[0.12, 12, 12]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[-0.2, 0.15, 0.63]}>
+      <mesh position={[-0.2, 0.65, 0.63]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
 
       {/* Right eye */}
-      <mesh ref={eyeRRef} position={[0.2, 0.15, 0.55]}>
+      <mesh ref={eyeRRef} position={[0.2, 0.65, 0.55]}>
         <sphereGeometry args={[0.12, 12, 12]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[0.2, 0.15, 0.63]}>
+      <mesh position={[0.2, 0.65, 0.63]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
 
       {/* Highlight/sheen */}
-      <mesh position={[-0.15, 0.25, 0.5]}>
+      <mesh position={[-0.15, 0.75, 0.5]}>
         <sphereGeometry args={[0.1, 8, 8]} />
         <meshStandardMaterial color="#88ff88" emissive="#88ff88" emissiveIntensity={0.3} transparent opacity={0.5} />
       </mesh>
