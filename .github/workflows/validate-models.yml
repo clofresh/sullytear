@@ -3,14 +3,22 @@ name: Validate models
 on:
   pull_request:
     paths:
+      - 'art/**'
       - 'public/models/**'
       - 'scripts/validate-gltf.mjs'
+      - 'scripts/compile-models.mjs'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/validate-models.yml'
   push:
     branches: [main]
     paths:
+      - 'art/**'
       - 'public/models/**'
       - 'scripts/validate-gltf.mjs'
+      - 'scripts/compile-models.mjs'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/validate-models.yml'
 
 jobs:
@@ -21,4 +29,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/validate-gltf.mjs
+          cache: npm
+      - run: npm ci
+      - name: Compile TOML-authored models
+        run: node scripts/compile-models.mjs
+      - name: Fail if committed .glb is stale vs TOML source
+        run: |
+          if ! git diff --exit-code -- public/models/; then
+            echo "::error::public/models/ is out of sync with art/*.model.toml."
+            echo "Run 'npm run build:models' and commit the updated .glb files."
+            exit 1
+          fi
+      - name: Validate all .glb files
+        run: node scripts/validate-gltf.mjs

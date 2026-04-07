@@ -1,8 +1,30 @@
-# Sullytear Art Pipeline (Blender only)
+# Sullytear Art Pipeline
+
+There are **two supported source formats** for character meshes and
+animations, and both compile down to the same `public/models/<name>.glb`
+that the engine loads:
+
+| Source                  | Who authors it          | How it becomes a `.glb`                       |
+|-------------------------|-------------------------|-----------------------------------------------|
+| `art/<name>.blend`      | 3D artists, in Blender  | Manual export (File → Export → glTF Binary)   |
+| `art/<name>.model.toml` | Claude, in text         | `npm run build:models` (auto in `npm build`)  |
+
+**Exactly one source of truth per character.** If `<name>.model.toml` exists,
+the compiler owns `<name>.glb` and CI will fail if the committed `.glb` is
+stale. To hand a model off from Claude → an artist, delete the `.toml` and
+commit a `<name>.blend` + freshly exported `<name>.glb`. To hand it back,
+delete the `.blend` and add a `.model.toml`.
+
+Either way, the final `.glb` is gated by the same validator
+(`npm run validate:models`), so the contract below applies to both paths.
+
+---
+
+# Option A — Blender only
 
 This is the complete workflow for contributing character meshes and animations
-to Sullytear. You only need **Blender 3.6+** — no coding, no command line
-except for a single `npm` check before you push.
+using **Blender 3.6+**. No coding, no command line except for a single `npm`
+check before you push.
 
 ## 1. Files and folders
 
@@ -141,3 +163,48 @@ reviewing your PR will see a green ✅ if the asset meets the contract.
 | `mesh height N outside allowed range`                 | Scale the whole rig in Object Mode, then `Ctrl+A → All Transforms`.              |
 | `feet not at origin`                                  | Move the armature so the lowest mesh vertex sits on Z=0, apply transforms, re-export. |
 | `file size N MB exceeds limit`                        | Reduce texture resolution or decimate the mesh.                                  |
+
+---
+
+# Option B — Editing a Claude-authored model in Blender
+
+Some characters live in `art/<name>.model.toml` and are compiled to `.glb`
+by `scripts/compile-models.mjs`. If you want to take one over:
+
+1. Open the compiled asset: `File → Import → glTF 2.0` on
+   `public/models/<name>.glb`. All bones, meshes, and the four actions come
+   in intact.
+2. Edit freely. Save as `art/<name>.blend`.
+3. Export back to `public/models/<name>.glb` using the settings in
+   **Option A → section 6**.
+4. **Delete `art/<name>.model.toml`** in the same commit. This transfers
+   ownership to you; from this point on the `.glb` is authored by hand and
+   the compiler will ignore this character.
+5. Run `npm run validate:models` and push.
+
+The reverse direction (artist → Claude) is rare, but works the same way:
+delete the `.blend`, add a hand-written `.model.toml`, run
+`npm run build:models`, commit both the TOML and the regenerated `.glb`.
+
+---
+
+# Authoring a TOML model (Claude path, reference)
+
+Artists can ignore this section. It exists so reviewers can read a TOML
+diff without having to cross-reference the schema.
+
+- Top-level keys: `name`, `description`, `bones`, `parts`, `animations`.
+- `bones`: at least one, exactly one root (no `parent`). Each bone has a
+  `head` position in metres.
+- `parts`: each part is either a `sphere` (`radius`, optional per-axis
+  `scale`) or a `box` (`size`), with a world-space `pos`, a `#rrggbb`
+  `color`, and the `bone` it's skinned to.
+- `animations.{idle,attack,hit,death}`: all four required. Each has
+  `loop`, `duration`, and an array of `tracks`. Each track targets one
+  `bone` and one `path` (`translation` | `rotation` | `scale`) with
+  matching `times` (seconds) and `values` arrays. Rotations are
+  quaternions `[x, y, z, w]`; everything else is 3-vectors.
+
+Compile with `npm run build:models`. See `art/slime.model.toml` for a
+working example.
+
