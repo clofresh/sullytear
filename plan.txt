@@ -1,0 +1,25 @@
+I have completed the research and analysis. I am now ready to implement the normalization of the arena anchor to remove the per-model offset "hack."
+Final Implementation Plan
+1. Global Arena Offset
+I will introduce ARENA_FLOOR_OFFSET = -1.0 in ./src/combat/arena/MonsterModel.tsx. This constant will be the single source of truth for the visual floor position of all monsters.
+2. Normalizing Legacy Models (Shift to $y=0$)
+I will remove the top-level <group position={[0, Y, 0]}> offsets and shift all internal components up by $|Y|$.
+Model	Old Group Offset	Shift Amount	Key Component Adjustments
+Slime	-0.5	+0.5	Body: -0.3 $\rightarrow$ 0.2, Eyes: 0.15 $\rightarrow$ 0.65
+Dragon	-0.3	+0.3	Body: 0 $\rightarrow$ 0.3, Tail: -0.2 $\rightarrow$ 0.1
+Goblin	-0.6	+0.6	Body: 0 $\rightarrow$ 0.6, Legs: -0.5 $\rightarrow$ 0.1
+Skeleton	-0.5	+0.5	Pelvis: 0.05 $\rightarrow$ 0.55, Legs: -0.25 $\rightarrow$ 0.25
+Lich	-0.3	+0.3	Robe: -0.2 $\rightarrow$ 0.1, Staff: 0.1 $\rightarrow$ 0.4
+Werewolf	-0.4	+0.4	Torso: 0.1 $\rightarrow$ 0.5, Legs: -0.45 $\rightarrow$ -0.05
+Knight	-0.5	+0.5	Pelvis: 0.12 $\rightarrow$ 0.62, Boots: -0.52 $\rightarrow$ -0.02
+3. Refactoring MonsterModel.tsx
+I will unify the rendering pipeline:
+- Remove offsetY from GLTF_MODEL_MAP.
+- Wrap both GltfCharacter and procedural Model in a single <group position={[0, ARENA_FLOOR_OFFSET, 0]}>.
+- Ensure groupRef (used for attack/hit animations) remains on this outer wrapper to preserve the relative movement logic.
+4. Verification
+- Run npm run validate:models to ensure GLB integrity.
+- Visually confirm all monsters share the same baseline.
+- Verify that the useIdleAnimation and combat event animations still function correctly.
+This approach transforms the "hack" into a standardized pipeline where the asset (whether glTF or TSX) is responsible for being grounded at $y=0$, and the arena is responsible for placing that ground in the 3D scene.
+

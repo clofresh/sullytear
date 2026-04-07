@@ -21,55 +21,55 @@ export default function GoblinModel() {
   const darkGreen = '#3d6b24';
 
   return (
-    <group ref={groupRef} position={[0, -0.6, 0]}>
+    <group ref={groupRef}>
       {/* Body */}
-      <mesh position={[0, 0, 0]}>
+      <mesh position={[0, 0.6, 0]}>
         <capsuleGeometry args={[0.3, 0.5, 8, 16]} />
         <meshStandardMaterial color={green} roughness={0.7} />
       </mesh>
 
       {/* Head */}
-      <mesh position={[0, 0.7, 0]}>
+      <mesh position={[0, 1.3, 0]}>
         <sphereGeometry args={[0.3, 16, 12]} />
         <meshStandardMaterial color={green} roughness={0.6} />
       </mesh>
 
       {/* Left ear */}
-      <mesh position={[-0.35, 0.9, 0]} rotation={[0, 0, -0.5]}>
+      <mesh position={[-0.35, 1.5, 0]} rotation={[0, 0, -0.5]}>
         <coneGeometry args={[0.08, 0.35, 6]} />
         <meshStandardMaterial color={green} />
       </mesh>
 
       {/* Right ear */}
-      <mesh position={[0.35, 0.9, 0]} rotation={[0, 0, 0.5]}>
+      <mesh position={[0.35, 1.5, 0]} rotation={[0, 0, 0.5]}>
         <coneGeometry args={[0.08, 0.35, 6]} />
         <meshStandardMaterial color={green} />
       </mesh>
 
       {/* Eyes */}
-      <mesh position={[-0.1, 0.75, 0.25]}>
+      <mesh position={[-0.1, 1.35, 0.25]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} />
       </mesh>
-      <mesh position={[0.1, 0.75, 0.25]}>
+      <mesh position={[0.1, 1.35, 0.25]}>
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} />
       </mesh>
 
       {/* Nose */}
-      <mesh position={[0, 0.65, 0.28]}>
+      <mesh position={[0, 1.25, 0.28]}>
         <sphereGeometry args={[0.05, 6, 6]} />
         <meshStandardMaterial color={darkGreen} />
       </mesh>
 
       {/* Left arm */}
-      <mesh position={[-0.4, 0.1, 0]} rotation={[0, 0, -0.4]}>
+      <mesh position={[-0.4, 0.7, 0]} rotation={[0, 0, -0.4]}>
         <capsuleGeometry args={[0.07, 0.35, 4, 8]} />
         <meshStandardMaterial color={green} />
       </mesh>
 
       {/* Right arm + dagger */}
-      <group ref={daggerRef} position={[0.4, 0.15, 0]} rotation={[0, 0, 0.3]}>
+      <group ref={daggerRef} position={[0.4, 0.75, 0]} rotation={[0, 0, 0.3]}>
         <mesh>
           <capsuleGeometry args={[0.07, 0.35, 4, 8]} />
           <meshStandardMaterial color={green} />
@@ -82,11 +82,11 @@ export default function GoblinModel() {
       </group>
 
       {/* Legs */}
-      <mesh position={[-0.12, -0.5, 0]}>
+      <mesh position={[-0.12, 0.1, 0]}>
         <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
         <meshStandardMaterial color={darkGreen} />
       </mesh>
-      <mesh position={[0.12, -0.5, 0]}>
+      <mesh position={[0.12, 0.1, 0]}>
         <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
         <meshStandardMaterial color={darkGreen} />
       </mesh>

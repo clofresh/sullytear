@@ -9,6 +9,8 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
+const ARENA_FLOOR_OFFSET = -1.0;
+
 const MODEL_MAP: Record<string, React.ComponentType> = {
   slime: SlimeModel,
   goblin: GoblinModel,
@@ -81,7 +83,7 @@ export default function MonsterModel({ monsterId }: Props) {
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[0, ARENA_FLOOR_OFFSET, 0]}>
       <Model />
     </group>
   );

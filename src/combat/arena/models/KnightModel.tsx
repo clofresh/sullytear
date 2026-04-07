@@ -25,49 +25,49 @@ export default function KnightModel() {
   const leather = '#8B4513';
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef}>
       {/* === HEAD === */}
       {/* Helmet */}
-      <mesh position={[0, 0.9, 0]}>
+      <mesh position={[0, 1.4, 0]}>
         <sphereGeometry args={[0.22, 12, 10]} />
         <meshStandardMaterial color={armor} metalness={0.4} roughness={0.5} />
       </mesh>
       {/* Visor slit */}
-      <mesh position={[0, 0.87, 0.2]}>
+      <mesh position={[0, 1.37, 0.2]}>
         <boxGeometry args={[0.2, 0.04, 0.06]} />
         <meshStandardMaterial color="#222222" />
       </mesh>
       {/* Plume */}
-      <mesh position={[0, 1.15, -0.05]} rotation={[0.15, 0, 0]}>
+      <mesh position={[0, 1.65, -0.05]} rotation={[0.15, 0, 0]}>
         <coneGeometry args={[0.06, 0.3, 6]} />
         <meshStandardMaterial color="#cc3333" roughness={0.8} />
       </mesh>
 
       {/* === TORSO === */}
       {/* Chest armor */}
-      <mesh position={[0, 0.4, 0]}>
+      <mesh position={[0, 0.9, 0]}>
         <capsuleGeometry args={[0.28, 0.4, 8, 16]} />
         <meshStandardMaterial color={armor} metalness={0.3} roughness={0.5} />
       </mesh>
       {/* Belt */}
-      <mesh position={[0, 0.12, 0]}>
+      <mesh position={[0, 0.62, 0]}>
         <boxGeometry args={[0.45, 0.06, 0.25]} />
         <meshStandardMaterial color={leather} roughness={0.9} />
       </mesh>
       {/* Belt buckle */}
-      <mesh position={[0, 0.12, 0.13]}>
+      <mesh position={[0, 0.62, 0.13]}>
         <boxGeometry args={[0.06, 0.05, 0.02]} />
         <meshStandardMaterial color={gold} metalness={0.7} roughness={0.3} />
       </mesh>
 
       {/* === SHIELD ARM (left, -X side) === */}
       {/* Upper arm */}
-      <mesh position={[-0.35, 0.4, 0]} rotation={[0, 0, -0.2]}>
+      <mesh position={[-0.35, 0.9, 0]} rotation={[0, 0, -0.2]}>
         <capsuleGeometry args={[0.08, 0.25, 4, 8]} />
         <meshStandardMaterial color={armor} metalness={0.3} roughness={0.5} />
       </mesh>
       {/* Shield */}
-      <group position={[-0.42, 0.25, 0.12]}>
+      <group position={[-0.42, 0.75, 0.12]}>
         <mesh>
           <boxGeometry args={[0.05, 0.45, 0.35]} />
           <meshStandardMaterial color={shield} metalness={0.2} roughness={0.6} />
@@ -90,7 +90,7 @@ export default function KnightModel() {
       </group>
 
       {/* === SWORD ARM (right, +X side) === */}
-      <group ref={swordArmRef} position={[0.35, 0.45, 0]} rotation={[0, 0, 0.3]}>
+      <group ref={swordArmRef} position={[0.35, 0.95, 0]} rotation={[0, 0, 0.3]}>
         {/* Upper arm */}
         <mesh>
           <capsuleGeometry args={[0.08, 0.25, 4, 8]} />
@@ -120,22 +120,22 @@ export default function KnightModel() {
 
       {/* === LEGS === */}
       {/* Left leg */}
-      <mesh position={[-0.12, -0.25, 0]}>
+      <mesh position={[-0.12, 0.25, 0]}>
         <capsuleGeometry args={[0.09, 0.35, 4, 8]} />
         <meshStandardMaterial color={darkArmor} metalness={0.2} roughness={0.6} />
       </mesh>
       {/* Right leg */}
-      <mesh position={[0.12, -0.25, 0]}>
+      <mesh position={[0.12, 0.25, 0]}>
         <capsuleGeometry args={[0.09, 0.35, 4, 8]} />
         <meshStandardMaterial color={darkArmor} metalness={0.2} roughness={0.6} />
       </mesh>
       {/* Left boot */}
-      <mesh position={[-0.12, -0.52, 0.03]}>
+      <mesh position={[-0.12, 0.02, 0.03]}>
         <boxGeometry args={[0.1, 0.08, 0.15]} />
         <meshStandardMaterial color="#4a3a2a" roughness={0.9} />
       </mesh>
       {/* Right boot */}
-      <mesh position={[0.12, -0.52, 0.03]}>
+      <mesh position={[0.12, 0.02, 0.03]}>
         <boxGeometry args={[0.1, 0.08, 0.15]} />
         <meshStandardMaterial color="#4a3a2a" roughness={0.9} />
       </mesh>
