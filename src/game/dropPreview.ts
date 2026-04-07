@@ -53,16 +53,39 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
   }
 
   if (targetPileId.startsWith('tableau-')) {
-    // Non-face from waste: show damage
-    if (sourcePileId === 'waste' && !isFaceCard(rank)) {
-      return `${rank} dmg`;
+    const parts: string[] = [];
+
+    // Waste → tableau: show waste damage (always, regardless of face card)
+    if (sourcePileId === 'waste') {
+      parts.push(`${rank} dmg`);
+      // Face card from waste also triggers tier 2 Rises! on arrival
+      if (isFaceCard(rank) && !_hasPlayTriggered(card.id)) {
+        parts.push(`${FACE_NAMES[rank]} Rises! ${TIER_2_EFFECTS[rank]}`);
+      }
     }
-    // Face card from tableau: show Rises! + effect if not already triggered
-    if (isFaceCard(rank) && sourcePileId?.startsWith('tableau-')) {
-      if (_hasPlayTriggered(card.id)) return null;
-      return `${FACE_NAMES[rank]} Rises! ${TIER_2_EFFECTS[rank]}`;
+
+    // Tableau → tableau: face card tier 2 + source-pile side effects
+    if (sourcePileId?.startsWith('tableau-')) {
+      // Face card Rises! if head is face card and not already triggered
+      if (isFaceCard(rank) && !_hasPlayTriggered(card.id)) {
+        parts.push(`${FACE_NAMES[rank]} Rises! ${TIER_2_EFFECTS[rank]}`);
+      }
+
+      // Compute source-pile side effects
+      const sourceIdx = parseInt(sourcePileId.split('-')[1]);
+      const sourcePile = useGameStore.getState().tableau[sourceIdx];
+      if (sourcePile) {
+        const fromIndex = sourcePile.findIndex(c => c.id === card.id);
+        if (fromIndex >= 0) {
+          const reveal = fromIndex > 0 && sourcePile[fromIndex - 1].faceUp === false;
+          const columnClear = fromIndex === 0;
+          if (reveal) parts.push('+2 dmg Reveal');
+          if (columnClear) parts.push('+5 HP Clear');
+        }
+      }
     }
-    return null;
+
+    return parts.length > 0 ? parts.join(' · ') : null;
   }
 
   return null;

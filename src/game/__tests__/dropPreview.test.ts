@@ -104,6 +104,123 @@ describe('getDropPreview', () => {
     });
   });
 
+  describe('Tableau stack side-effects', () => {
+    it('non-face stack that reveals face-down card shows reveal dmg', () => {
+      _withSuppressedEvents(() => {
+        useGameStore.setState({
+          tableau: [
+            [makeCard('clubs', 5, false), makeCard('hearts', 10), makeCard('spades', 9)],
+            [makeCard('hearts', 11)],
+            [], [], [], [], [],
+          ],
+          foundations: [[], [], [], []],
+        });
+      });
+      _resetTracking();
+      expect(
+        getDropPreview(
+          [makeCard('hearts', 10), makeCard('spades', 9)],
+          'tableau-1',
+          'tableau-0',
+        ),
+      ).toBe('+2 dmg Reveal');
+    });
+
+    it('non-face stack that clears a column shows clear heal', () => {
+      _withSuppressedEvents(() => {
+        useGameStore.setState({
+          tableau: [
+            [makeCard('hearts', 10), makeCard('spades', 9)],
+            [makeCard('hearts', 11)],
+            [], [], [], [], [],
+          ],
+          foundations: [[], [], [], []],
+        });
+      });
+      _resetTracking();
+      expect(
+        getDropPreview(
+          [makeCard('hearts', 10), makeCard('spades', 9)],
+          'tableau-1',
+          'tableau-0',
+        ),
+      ).toBe('+5 HP Clear');
+    });
+
+    it('face card stack with reveal shows Rises + reveal', () => {
+      _withSuppressedEvents(() => {
+        useGameStore.setState({
+          tableau: [
+            [makeCard('clubs', 5, false), makeCard('spades', 12), makeCard('hearts', 11)],
+            [makeCard('hearts', 13)],
+            [], [], [], [], [],
+          ],
+          foundations: [[], [], [], []],
+        });
+      });
+      _resetTracking();
+      expect(
+        getDropPreview(
+          [makeCard('spades', 12), makeCard('hearts', 11)],
+          'tableau-1',
+          'tableau-0',
+        ),
+      ).toBe('Queen Rises! Heal 3 · +2 dmg Reveal');
+    });
+
+    it('face card stack with column clear shows Rises + clear', () => {
+      _withSuppressedEvents(() => {
+        useGameStore.setState({
+          tableau: [
+            [makeCard('spades', 12), makeCard('hearts', 11)],
+            [makeCard('hearts', 13)],
+            [], [], [], [], [],
+          ],
+          foundations: [[], [], [], []],
+        });
+      });
+      _resetTracking();
+      expect(
+        getDropPreview(
+          [makeCard('spades', 12), makeCard('hearts', 11)],
+          'tableau-1',
+          'tableau-0',
+        ),
+      ).toBe('Queen Rises! Heal 3 · +5 HP Clear');
+    });
+
+    it('non-face stack with no side effects returns null', () => {
+      _withSuppressedEvents(() => {
+        useGameStore.setState({
+          tableau: [
+            [makeCard('hearts', 10), makeCard('spades', 9), makeCard('diamonds', 8)],
+            [makeCard('hearts', 11)],
+            [], [], [], [], [],
+          ],
+          foundations: [[], [], [], []],
+        });
+      });
+      _resetTracking();
+      expect(
+        getDropPreview(
+          [makeCard('spades', 9), makeCard('diamonds', 8)],
+          'tableau-1',
+          'tableau-0',
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('Waste to tableau face card', () => {
+    it('Queen from waste shows waste dmg + Rises', () => {
+      expect(getDropPreview([makeCard('spades', 12)], 'tableau-0', 'waste')).toBe('12 dmg · Queen Rises! Heal 3');
+    });
+
+    it('Jack from waste shows waste dmg + Rises', () => {
+      expect(getDropPreview([makeCard('spades', 11)], 'tableau-0', 'waste')).toBe('11 dmg · Jack Rises! Poison 2');
+    });
+  });
+
   describe('Waste target (stock draw)', () => {
     it('shows base draw cost', () => {
       expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('1 dmg to you');
