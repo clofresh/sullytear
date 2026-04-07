@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
-import { dragState } from '../game/dragState';
+import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
 
 interface WasteProps {
   cardWidth: number;
@@ -17,32 +17,8 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   const foundations = useGameStore(s => s.foundations);
   const moveCards = useGameStore(s => s.moveCards);
   const [isDragging, setIsDragging] = useState(false);
-  const [isValidTarget, setIsValidTarget] = useState(false);
 
-  // Poll for valid drop target status when stock is being dragged
-  useEffect(() => {
-    const check = () => {
-      if (!dragState.active || dragState.sourcePileId !== 'stock') {
-        setIsValidTarget(false);
-        dragState.validTargets.delete('waste');
-        return;
-      }
-      setIsValidTarget(true);
-      dragState.validTargets.add('waste');
-    };
-
-    const interval = setInterval(check, 100);
-    return () => {
-      clearInterval(interval);
-      dragState.validTargets.delete('waste');
-    };
-  }, []);
-
-  // Clear valid target on game state changes
-  const moves = useGameStore(s => s.moves);
-  useEffect(() => {
-    setIsValidTarget(false);
-  }, [moves]);
+  const isValidTarget = useDropTargetValidation('waste', (drag) => drag.sourcePileId === 'stock');
 
   if (waste.length === 0) {
     return (
