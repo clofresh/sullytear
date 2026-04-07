@@ -1,5 +1,6 @@
-import { Card, MovePayload, PileId } from './types';
+import { Card, MovePayload } from './types';
 import { canMoveToFoundation } from './rules';
+import { tableauId, foundationId } from './pileId';
 
 export function getAutoCompleteSequence(
   tableau: Card[][],
@@ -19,9 +20,9 @@ export function getAutoCompleteSequence(
         if (canMoveToFoundation(topCard, foundCopy[f])) {
           moves.push({
             cards: [topCard],
-            from: `tableau-${t}` as PileId,
+            from: tableauId(t),
             fromIndex: tabCopy[t].length - 1,
-            to: `foundation-${f}` as PileId,
+            to: foundationId(f),
           });
           tabCopy[t].pop();
           foundCopy[f].push(topCard);

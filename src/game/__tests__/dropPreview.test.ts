@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getDropPreview } from '../dropPreview';
-import { useCombatStore, _withSuppressedEvents, _resetTracking } from '../combatStore';
+import { useCombatStore } from '../combatStore';
+import { _withSuppressedEvents, _resetTracking } from '../orchestrator';
 import { useGameStore } from '../store';
 import type { Card, Rank, Suit } from '../types';
 

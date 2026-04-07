@@ -2,7 +2,7 @@ import { useRef, useCallback, useState } from 'react';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex, canMoveToTableau } from '../game/rules';
 import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
-import type { PileId } from '../game/types';
+import { tableauId, foundationId } from '../game/pileId';
 import TableauVisual from './TableauVisual';
 
 interface TableauProps {
@@ -30,7 +30,7 @@ export default function Tableau({
   const pile = useGameStore(s => s.tableau[index]);
   const foundations = useGameStore(s => s.foundations);
   const moveCards = useGameStore(s => s.moveCards);
-  const pileId = `tableau-${index}` as PileId;
+  const pileId = tableauId(index);
   const dragIdxRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragSource, setIsDragSource] = useState(false);
@@ -53,7 +53,7 @@ export default function Tableau({
           cards: [card],
           from: pileId,
           fromIndex: cardIndex,
-          to: `foundation-${fi}` as PileId,
+          to: foundationId(fi),
         });
       }
     },

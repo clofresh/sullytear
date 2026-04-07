@@ -165,6 +165,4 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
 
 // Cross-store wiring (event detection + run orchestration) lives in
 // `./orchestrator`. combatStore now exposes only its own state and actions
-// — see issue #34. The helpers below are re-exports kept for backward
-// compatibility with tests and dropPreview.ts.
-export { hasPlayTriggered, _resetTracking, _withSuppressedEvents } from './orchestrator';
+// — see issue #34.

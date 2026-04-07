@@ -1,6 +1,8 @@
 import type { Card } from './types';
-import { useCombatStore, hasPlayTriggered } from './combatStore';
+import { useCombatStore } from './combatStore';
+import { hasPlayTriggered } from './orchestrator';
 import { useGameStore } from './store';
+import { parsePileId } from './pileId';
 import { FACE_NAMES, isFaceCard, RANK_ACE, RANK_JACK, RANK_QUEEN, RANK_KING } from './faceCard';
 
 // Effect descriptions per face card per tier
@@ -67,8 +69,11 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
       }
 
       // Compute source-pile side effects
-      const sourceIdx = parseInt(sourcePileId.split('-')[1]);
-      const sourcePile = useGameStore.getState().tableau[sourceIdx];
+      const parsedSource = parsePileId(sourcePileId);
+      const sourcePile =
+        parsedSource?.kind === 'tableau'
+          ? useGameStore.getState().tableau[parsedSource.index]
+          : undefined;
       if (sourcePile) {
         const fromIndex = sourcePile.findIndex(c => c.id === card.id);
         if (fromIndex >= 0) {

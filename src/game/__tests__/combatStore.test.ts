@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from '../store';
-import { useCombatStore, _resetTracking, _withSuppressedEvents, hasPlayTriggered } from '../combatStore';
+import { useCombatStore } from '../combatStore';
+import { _resetTracking, _withSuppressedEvents, hasPlayTriggered } from '../orchestrator';
 import type { Card, Rank, Suit } from '../types';
 
 function makeCard(suit: Suit, rank: Rank, faceUp = true): Card {
