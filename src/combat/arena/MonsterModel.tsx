@@ -4,10 +4,12 @@ import SkeletonModel from './models/SkeletonModel';
 import WerewolfModel from './models/WerewolfModel';
 import LichModel from './models/LichModel';
 import DragonModel from './models/DragonModel';
+import GltfCharacter from './GltfCharacter';
 import { useCombatStore } from '../../game/combatStore';
-import { useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useGLTF } from '@react-three/drei';
 
 const ARENA_FLOOR_OFFSET = -1.0;
 
@@ -20,11 +22,36 @@ export const MODEL_MAP: Record<string, React.ComponentType> = {
   dragon: DragonModel,
 };
 
+// Monsters whose meshes/animations come from a compiled .glb instead of the
+// procedural TSX components above. As characters are ported, move their key
+// from MODEL_MAP into here. The procedural fallback stays in place until the
+// last one is ported. URLs are resolved against Vite's BASE_URL so they work
+// under the GitHub Pages subpath.
+const GLTF_MODEL_MAP: Record<string, string> = {
+  slime: `${import.meta.env.BASE_URL}models/slime.glb`,
+};
+
+// Eagerly preload known glTF assets so the first arena entry doesn't stall.
+for (const url of Object.values(GLTF_MODEL_MAP)) {
+  useGLTF.preload(url);
+}
+
 interface Props {
   monsterId: string;
 }
 
 export default function MonsterModel({ monsterId }: Props) {
+  const gltfUrl = GLTF_MODEL_MAP[monsterId];
+  if (gltfUrl) {
+    // glTF-backed monsters drive their own animation state from the combat
+    // store; the legacy attack/hit-shake wrapper below would double up with
+    // the in-glb actions, so we render the GltfCharacter directly.
+    return (
+      <Suspense fallback={null}>
+        <GltfCharacter url={gltfUrl} />
+      </Suspense>
+    );
+  }
   const Model = MODEL_MAP[monsterId] ?? DragonModel;
   const groupRef = useRef<THREE.Group>(null!);
   const lastEventId = useRef(-1);
