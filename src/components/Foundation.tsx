@@ -22,7 +22,7 @@ export default function Foundation({ index, cardWidth, cardHeight }: FoundationP
   // Poll for valid drop target status during drag
   useEffect(() => {
     const check = () => {
-      if (!dragState.active || dragState.cards.length !== 1) {
+      if (!dragState.active || dragState.cards.length !== 1 || dragState.sourcePileId === 'stock') {
         setIsValidTarget(false);
         dragState.validTargets.delete(pileId);
         return;

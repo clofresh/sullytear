@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
+import { dragState } from '../game/dragState';
+import DropPreview from './DropPreview';
 
 interface WasteProps {
   cardWidth: number;
@@ -16,10 +18,41 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   const foundations = useGameStore(s => s.foundations);
   const moveCards = useGameStore(s => s.moveCards);
   const [isDragging, setIsDragging] = useState(false);
+  const [isValidTarget, setIsValidTarget] = useState(false);
+
+  // Poll for valid drop target status when stock is being dragged
+  useEffect(() => {
+    const check = () => {
+      if (!dragState.active || dragState.sourcePileId !== 'stock') {
+        setIsValidTarget(false);
+        dragState.validTargets.delete('waste');
+        return;
+      }
+      setIsValidTarget(true);
+      dragState.validTargets.add('waste');
+    };
+
+    const interval = setInterval(check, 100);
+    return () => {
+      clearInterval(interval);
+      dragState.validTargets.delete('waste');
+    };
+  }, []);
+
+  // Clear valid target on game state changes
+  const moves = useGameStore(s => s.moves);
+  useEffect(() => {
+    setIsValidTarget(false);
+  }, [moves]);
 
   if (waste.length === 0) {
     return (
-      <div data-pile-id="waste" style={{ position: 'relative', width: cardWidth, height: cardHeight }}>
+      <div
+        data-pile-id="waste"
+        className={isValidTarget ? 'valid-drop-target' : undefined}
+        style={{ position: 'relative', width: cardWidth, height: cardHeight }}
+      >
+        {isValidTarget && <DropPreview targetPileId="waste" />}
         <CardPlaceholder width={cardWidth} height={cardHeight} />
       </div>
     );
@@ -43,6 +76,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
   return (
     <div
       data-pile-id="waste"
+      className={isValidTarget ? 'valid-drop-target' : undefined}
       style={{
         position: 'relative',
         width: cardWidth,
@@ -50,6 +84,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         zIndex: isDragging ? 1000 : undefined,
       }}
     >
+      {isValidTarget && <DropPreview targetPileId="waste" />}
       {secondCard && (
         <Card
           card={secondCard}

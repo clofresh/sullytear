@@ -36,7 +36,7 @@ export default function Tableau({
   // Poll for valid drop target status during drag
   useEffect(() => {
     const check = () => {
-      if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0) {
+      if (!dragState.active || dragState.sourcePileId === pileId || dragState.cards.length === 0 || dragState.sourcePileId === 'stock') {
         setIsValidTarget(false);
         dragState.validTargets.delete(pileId);
         return;
