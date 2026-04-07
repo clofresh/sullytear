@@ -1,22 +1,20 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function KnightModel() {
   const groupRef = useRef<THREE.Group>(null!);
   const swordArmRef = useRef<THREE.Group>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Gentle breathing
-    groupRef.current.position.y = -0.5 + Math.sin(t * 1.5) * 0.02;
-    // Subtle sway
-    groupRef.current.rotation.z = Math.sin(t * 1.0) * 0.015;
-
-    // Sword arm idle movement
-    if (swordArmRef.current) {
-      swordArmRef.current.rotation.z = 0.3 + Math.sin(t * 1.2) * 0.05;
-    }
+  useIdleAnimation(groupRef, {
+    baseY: -0.5,
+    breath: { rate: 1.5, amount: 0.02 },
+    sway: { rate: 1.0, amount: 0.015 },
+    extra: (t) => {
+      if (swordArmRef.current) {
+        swordArmRef.current.rotation.z = 0.3 + Math.sin(t * 1.2) * 0.05;
+      }
+    },
   });
 
   const armor = '#6a6a7a';

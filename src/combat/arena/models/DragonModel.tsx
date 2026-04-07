@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function DragonModel() {
   const groupRef = useRef<THREE.Group>(null!);
@@ -8,23 +8,22 @@ export default function DragonModel() {
   const wingRRef = useRef<THREE.Mesh>(null!);
   const tailRef = useRef<THREE.Group>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Breathing
-    groupRef.current.position.y = Math.sin(t * 1.0) * 0.04;
-    groupRef.current.rotation.z = Math.sin(t * 0.6) * 0.015;
-
-    // Wing flap
-    if (wingLRef.current && wingRRef.current) {
-      const flap = Math.sin(t * 1.5) * 0.2;
-      wingLRef.current.rotation.z = -0.6 + flap;
-      wingRRef.current.rotation.z = 0.6 - flap;
-    }
-
-    // Tail sway
-    if (tailRef.current) {
-      tailRef.current.rotation.y = Math.sin(t * 1.2) * 0.2;
-    }
+  // Note: original code overwrote position.y with sin(t)*0.04, ignoring
+  // the JSX `position={[0, -0.3, 0]}` initial. baseY: 0 preserves that.
+  useIdleAnimation(groupRef, {
+    baseY: 0,
+    breath: { rate: 1.0, amount: 0.04 },
+    sway: { rate: 0.6, amount: 0.015 },
+    extra: (t) => {
+      if (wingLRef.current && wingRRef.current) {
+        const flap = Math.sin(t * 1.5) * 0.2;
+        wingLRef.current.rotation.z = -0.6 + flap;
+        wingRRef.current.rotation.z = 0.6 - flap;
+      }
+      if (tailRef.current) {
+        tailRef.current.rotation.y = Math.sin(t * 1.2) * 0.2;
+      }
+    },
   });
 
   const bodyColor = '#8B2500';

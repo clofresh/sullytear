@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import PoisonDrips from './PoisonDrips';
 
 interface Props {
   poisoned: boolean;
@@ -51,29 +51,14 @@ export default function DragonSprite({ poisoned }: Props) {
       <line x1="38" y1="50" x2="40" y2="56" stroke="#cc4400" strokeWidth="1.5" strokeLinecap="round" />
       <line x1="42" y1="50" x2="46" y2="56" stroke="#cc4400" strokeWidth="1.5" strokeLinecap="round" />
 
-      {/* Poison drips when poisoned */}
-      {poisoned && (
-        <>
-          <motion.circle
-            cx="26" cy="48" r="2"
-            fill="#8a44bb"
-            animate={{ cy: [48, 56], opacity: [0.8, 0] }}
-            transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
-          />
-          <motion.circle
-            cx="38" cy="46" r="1.5"
-            fill="#aa55dd"
-            animate={{ cy: [46, 54], opacity: [0.7, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-          />
-          <motion.circle
-            cx="32" cy="50" r="1.8"
-            fill="#9944cc"
-            animate={{ cy: [50, 58], opacity: [0.8, 0] }}
-            transition={{ duration: 1.1, repeat: Infinity, delay: 0.8 }}
-          />
-        </>
-      )}
+      <PoisonDrips
+        poisoned={poisoned}
+        drips={[
+          { cx: 26, cy: 48, r: 2, duration: 1.2 },
+          { cx: 38, cy: 46, r: 1.5, duration: 1, opacity: 0.7 },
+          { cx: 32, cy: 50, r: 1.8, duration: 1.1 },
+        ]}
+      />
     </svg>
   );
 }

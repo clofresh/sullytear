@@ -1,27 +1,24 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function SkeletonModel() {
   const groupRef = useRef<THREE.Group>(null!);
   const jawRef = useRef<THREE.Mesh>(null!);
   const swordRef = useRef<THREE.Group>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Rattling idle sway
-    groupRef.current.rotation.z = Math.sin(t * 2.5) * 0.02;
-    groupRef.current.position.y = Math.sin(t * 3) * 0.015;
-
-    // Jaw chatter
-    if (jawRef.current) {
-      jawRef.current.position.y = -0.12 - Math.abs(Math.sin(t * 5)) * 0.03;
-    }
-
-    // Sword idle swing
-    if (swordRef.current) {
-      swordRef.current.rotation.z = Math.sin(t * 1.5) * 0.1 + 0.3;
-    }
+  useIdleAnimation(groupRef, {
+    baseY: 0,
+    breath: { rate: 3, amount: 0.015 },
+    sway: { rate: 2.5, amount: 0.02 },
+    extra: (t) => {
+      if (jawRef.current) {
+        jawRef.current.position.y = -0.12 - Math.abs(Math.sin(t * 5)) * 0.03;
+      }
+      if (swordRef.current) {
+        swordRef.current.rotation.z = Math.sin(t * 1.5) * 0.1 + 0.3;
+      }
+    },
   });
 
   const bone = '#e8e0d0';
