@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { GameState, GameActions, Snapshot, MovePayload, Card } from './types';
 import { createDeck, shuffle, dealTableau } from './deck';
 import { canMoveToTableau, canMoveToFoundation, isWin } from './rules';
+import { parsePileId } from './pileId';
 
 function takeSnapshot(state: GameState): Snapshot {
   return {
@@ -33,35 +34,33 @@ function createInitialState(drawMode: 1 | 3 = 1): Omit<GameState, 'gameId'> {
 }
 
 function parsePile(pileId: string, state: GameState): Card[] {
-  if (pileId === 'stock') return state.stock;
-  if (pileId === 'waste') return state.waste;
-  if (pileId.startsWith('tableau-')) {
-    const idx = parseInt(pileId.split('-')[1]);
-    return state.tableau[idx];
+  const parsed = parsePileId(pileId);
+  if (!parsed) return [];
+  switch (parsed.kind) {
+    case 'stock': return state.stock;
+    case 'waste': return state.waste;
+    case 'tableau': return state.tableau[parsed.index];
+    case 'foundation': return state.foundations[parsed.index];
   }
-  if (pileId.startsWith('foundation-')) {
-    const idx = parseInt(pileId.split('-')[1]);
-    return state.foundations[idx];
-  }
-  return [];
 }
 
 function setPile(pileId: string, cards: Card[], state: GameState): Partial<GameState> {
-  if (pileId === 'stock') return { stock: cards };
-  if (pileId === 'waste') return { waste: cards };
-  if (pileId.startsWith('tableau-')) {
-    const idx = parseInt(pileId.split('-')[1]);
-    const tableau = [...state.tableau];
-    tableau[idx] = cards;
-    return { tableau };
+  const parsed = parsePileId(pileId);
+  if (!parsed) return {};
+  switch (parsed.kind) {
+    case 'stock': return { stock: cards };
+    case 'waste': return { waste: cards };
+    case 'tableau': {
+      const tableau = [...state.tableau];
+      tableau[parsed.index] = cards;
+      return { tableau };
+    }
+    case 'foundation': {
+      const foundations = [...state.foundations];
+      foundations[parsed.index] = cards;
+      return { foundations };
+    }
   }
-  if (pileId.startsWith('foundation-')) {
-    const idx = parseInt(pileId.split('-')[1]);
-    const foundations = [...state.foundations];
-    foundations[idx] = cards;
-    return { foundations };
-  }
-  return {};
 }
 
 export const useGameStore = create<GameState & GameActions>()(

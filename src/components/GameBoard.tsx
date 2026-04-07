@@ -6,6 +6,8 @@ import Tableau from './Tableau';
 import { useGameStore } from '../game/store';
 import { useResponsive } from '../hooks/useResponsive';
 import { useDragApi } from '../game/DragContext';
+import { parsePileId } from '../game/pileId';
+import type { PileId } from '../game/types';
 import { resolveDropTarget, type Point } from './dropTarget';
 import './GameBoard.css';
 
@@ -38,14 +40,14 @@ export default function GameBoard() {
     dragSourceRef.current = { pileId, cardIndex };
 
     const state = useGameStore.getState();
+    const parsed = parsePileId(pileId);
     let cards: import('../game/types').Card[] = [];
-    if (pileId === 'stock') {
+    if (parsed?.kind === 'stock') {
       cards = state.stock.length > 0 ? [state.stock[state.stock.length - 1]] : [];
-    } else if (pileId === 'waste') {
+    } else if (parsed?.kind === 'waste') {
       cards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
-    } else if (pileId.startsWith('tableau-')) {
-      const tabIdx = parseInt(pileId.split('-')[1]);
-      cards = state.tableau[tabIdx].slice(cardIndex);
+    } else if (parsed?.kind === 'tableau') {
+      cards = state.tableau[parsed.index].slice(cardIndex);
     }
     dragApi.start(cards, pileId);
   }, [dragApi]);
@@ -80,22 +82,20 @@ export default function GameBoard() {
     }
 
     // Get the cards being moved from fresh state
-    let movingCards: import('../game/types').Card[];
-    if (dragSource.pileId === 'waste') {
+    const parsedSource = parsePileId(dragSource.pileId);
+    let movingCards: import('../game/types').Card[] = [];
+    if (parsedSource?.kind === 'waste') {
       movingCards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
-    } else if (dragSource.pileId.startsWith('tableau-')) {
-      const tabIdx = parseInt(dragSource.pileId.split('-')[1]);
-      movingCards = state.tableau[tabIdx].slice(dragSource.cardIndex);
-    } else {
-      movingCards = [];
+    } else if (parsedSource?.kind === 'tableau') {
+      movingCards = state.tableau[parsedSource.index].slice(dragSource.cardIndex);
     }
 
     if (movingCards.length > 0) {
       state.moveCards({
         cards: movingCards,
-        from: dragSource.pileId as 'waste' | `tableau-${number}`,
+        from: dragSource.pileId as PileId,
         fromIndex: dragSource.cardIndex,
-        to: targetPileId as `tableau-${number}` | `foundation-${number}`,
+        to: targetPileId as PileId,
       });
     }
   }, [cardWidth, dragApi]);

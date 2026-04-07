@@ -25,7 +25,7 @@ interface Props {
 export default function Particles({ combatState }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  const { velocities, offsets, rotations } = useMemo(() => {
+  const { velocities, offsets, rotations, sizes, suits, colors } = useMemo(() => {
     const offsets = new Float32Array(CARD_COUNT * 3);
     const velocities = new Float32Array(CARD_COUNT * 3);
     const rotations = new Float32Array(CARD_COUNT * 4);
@@ -78,27 +78,9 @@ export default function Particles({ combatState }: Props) {
     // Add instanced attributes
     geo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3));
     geo.setAttribute('aRotation', new THREE.InstancedBufferAttribute(rotations, 4));
-
-    const sizesArr = new Float32Array(CARD_COUNT);
-    const suitsArr = new Float32Array(CARD_COUNT);
-    const colorsArr = new Float32Array(CARD_COUNT * 3);
-    const baseColor = new THREE.Color('#4a8a5a');
-    const hsl = { h: 0, s: 0, l: 0 };
-    baseColor.getHSL(hsl);
-
-    for (let i = 0; i < CARD_COUNT; i++) {
-      sizesArr[i] = 0.5 + Math.random() * 0.8;
-      suitsArr[i] = Math.floor(Math.random() * 4);
-      const c = new THREE.Color();
-      c.setHSL(hsl.h + (Math.random() - 0.5) * 0.1, hsl.s, hsl.l + (Math.random() - 0.5) * 0.1);
-      colorsArr[i * 3] = c.r;
-      colorsArr[i * 3 + 1] = c.g;
-      colorsArr[i * 3 + 2] = c.b;
-    }
-
-    geo.setAttribute('aSize', new THREE.InstancedBufferAttribute(sizesArr, 1));
-    geo.setAttribute('aSuit', new THREE.InstancedBufferAttribute(suitsArr, 1));
-    geo.setAttribute('aColor', new THREE.InstancedBufferAttribute(colorsArr, 3));
+    geo.setAttribute('aSize', new THREE.InstancedBufferAttribute(sizes, 1));
+    geo.setAttribute('aSuit', new THREE.InstancedBufferAttribute(suits, 1));
+    geo.setAttribute('aColor', new THREE.InstancedBufferAttribute(colors, 3));
 
     const mat = new THREE.ShaderMaterial({
       vertexShader: cardsVertexShader,
@@ -115,7 +97,7 @@ export default function Particles({ combatState }: Props) {
     });
 
     return { geometry: geo, material: mat };
-  }, [offsets, rotations]);
+  }, [offsets, rotations, sizes, suits, colors]);
 
   const targetTint = useMemo(() => TINT_NONE.clone(), []);
 
