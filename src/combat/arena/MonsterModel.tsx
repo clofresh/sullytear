@@ -11,7 +11,7 @@ import * as THREE from 'three';
 
 const ARENA_FLOOR_OFFSET = -1.0;
 
-const MODEL_MAP: Record<string, React.ComponentType> = {
+export const MODEL_MAP: Record<string, React.ComponentType> = {
   slime: SlimeModel,
   goblin: GoblinModel,
   skeleton: SkeletonModel,
