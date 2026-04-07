@@ -1,4 +1,5 @@
 import type { Card } from '../types';
+import { isFaceCard } from '../faceCard';
 
 /**
  * Snapshot of game state used by the EventDetector to compare frames.
@@ -84,13 +85,13 @@ export function buildFaceCardPiles(state: { tableau: Card[][]; waste: Card[] }):
   const map = new Map<string, string>();
   for (let i = 0; i < state.tableau.length; i++) {
     for (const card of state.tableau[i]) {
-      if (card.faceUp && [1, 11, 12, 13].includes(card.rank)) {
+      if (card.faceUp && isFaceCard(card.rank)) {
         map.set(card.id, `tableau-${i}`);
       }
     }
   }
   for (const card of state.waste) {
-    if ([1, 11, 12, 13].includes(card.rank)) {
+    if (isFaceCard(card.rank)) {
       map.set(card.id, 'waste');
     }
   }
