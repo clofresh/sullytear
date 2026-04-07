@@ -31,7 +31,7 @@ export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId
   if (targetPileId === 'waste' && sourcePileId === 'stock') {
     const combat = useCombatStore.getState();
     const stockEmpty = useGameStore.getState().stock.length === 0;
-    const baseDmg = stockEmpty ? combat.monsterAttackDamage : 1;
+    const baseDmg = stockEmpty ? combat.monsterAttackDamage : rank;
     const poison = combat.poisonTurns;
     if (poison > 0) {
       return `${baseDmg} + 2 poison dmg to you`;

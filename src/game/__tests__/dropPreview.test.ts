@@ -222,13 +222,13 @@ describe('getDropPreview', () => {
   });
 
   describe('Waste target (stock draw)', () => {
-    it('shows base draw cost', () => {
-      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('1 dmg to you');
+    it('shows rank-based draw cost', () => {
+      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('5 dmg to you');
     });
 
     it('shows draw cost + poison when poisoned', () => {
       useCombatStore.getState().setPoisonTurns(2);
-      expect(getDropPreview([makeCard('spades', 5, false)], 'waste', 'stock')).toBe('1 + 2 poison dmg to you');
+      expect(getDropPreview([makeCard('spades', 7, false)], 'waste', 'stock')).toBe('7 + 2 poison dmg to you');
     });
 
     it('shows cycle cost when stock is empty', () => {

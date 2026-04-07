@@ -321,8 +321,13 @@ useGameStore.subscribe((state) => {
 
   if (currentWasteLength > prevWasteLength && state.stockCycleCount === prevStockCycleCount) {
     // A draw happened (waste grew, not a stock cycle reset)
-    // Every stock draw deals 1 damage to hero
-    combat.dealDamageToHero(1);
+    // Damage = sum of ranks of newly drawn cards
+    const drawn = currentWasteLength - prevWasteLength;
+    let rankSum = 0;
+    for (let i = currentWasteLength - drawn; i < currentWasteLength; i++) {
+      rankSum += state.waste[i].rank;
+    }
+    combat.dealDamageToHero(rankSum);
 
     // Poison tick on each draw
     if (useCombatStore.getState().poisonTurns > 0) {
