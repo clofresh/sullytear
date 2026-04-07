@@ -6,7 +6,27 @@ import Tableau from './Tableau';
 import { useGameStore } from '../game/store';
 import { useResponsive } from '../hooks/useResponsive';
 import { useDragApi } from '../game/DragContext';
+import { resolveDropTarget, type Point } from './dropTarget';
 import './GameBoard.css';
+
+// DOM adapters for resolveDropTarget. Kept here so the helper itself stays
+// pure and unit-testable.
+function elementsAtPoint(point: Point): string[] {
+  const ids: string[] = [];
+  for (const el of document.elementsFromPoint(point.x, point.y)) {
+    const pileEl = (el as HTMLElement).closest('[data-pile-id]');
+    const id = pileEl?.getAttribute('data-pile-id');
+    if (id) ids.push(id);
+  }
+  return ids;
+}
+
+function getPileCenter(pileId: string): Point | null {
+  const el = document.querySelector(`[data-pile-id="${pileId}"]`);
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
 
 export default function GameBoard() {
   const { cardWidth, cardHeight, gap, faceUpOffset } = useResponsive();
@@ -42,41 +62,14 @@ export default function GameBoard() {
     // Read fresh state from store (avoid stale closures)
     const state = useGameStore.getState();
 
-    // Find drop target via elementsFromPoint
-    const elements = document.elementsFromPoint(point.x, point.y);
-    let targetPileId: string | null = null;
-
-    for (const el of elements) {
-      const pileEl = (el as HTMLElement).closest('[data-pile-id]');
-      if (pileEl) {
-        const id = pileEl.getAttribute('data-pile-id');
-        if (id && id !== dragSource.pileId) {
-          targetPileId = id;
-          break;
-        }
-      }
-    }
-
-    // Fallback: if elementsFromPoint missed but we have valid targets,
-    // find the closest valid target pile to the pointer (within max snap distance)
-    if (!targetPileId && validTargets.size > 0) {
-      // Stock drags are very lenient — snap to waste from anywhere
-      const isStockDrag = dragSource.pileId === 'stock';
-      const MAX_SNAP_DISTANCE = isStockDrag ? Infinity : cardWidth * 1.2;
-      let bestDist = Infinity;
-      for (const vtId of validTargets) {
-        const el = document.querySelector(`[data-pile-id="${vtId}"]`);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dist = Math.hypot(point.x - cx, point.y - cy);
-        if (dist < bestDist && dist <= MAX_SNAP_DISTANCE) {
-          bestDist = dist;
-          targetPileId = vtId;
-        }
-      }
-    }
+    const targetPileId = resolveDropTarget({
+      point,
+      dragSourcePileId: dragSource.pileId,
+      validTargets,
+      cardWidth,
+      elementsAtPoint,
+      getPileCenter,
+    });
 
     if (!targetPileId) return;
 
