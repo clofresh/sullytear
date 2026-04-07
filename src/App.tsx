@@ -8,6 +8,7 @@ import CombatOverlay from './combat/CombatOverlay';
 import CombatArena from './combat/arena/CombatArena';
 import DragTrail from './components/DragTrail';
 import RunStartScreen from './components/RunStartScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useRunStore } from './game/runStore';
 import { DragProvider } from './game/DragContext';
 import './App.css';
@@ -19,9 +20,14 @@ export default function App() {
 
   return (
     <DragProvider>
-      <Suspense fallback={null}>
-        <AnimatedBackground />
-      </Suspense>
+      {/* Background is non-essential — if the chunk fails to load or a
+          shader fails to compile, render nothing instead of crashing the
+          whole app. */}
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <AnimatedBackground />
+        </Suspense>
+      </ErrorBoundary>
       {!isRunActive ? (
         <RunStartScreen />
       ) : (

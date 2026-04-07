@@ -7,6 +7,9 @@ import { burstVertexShader, burstFragmentShader } from './shaders/burst';
 import { processEvent, lerpColor, type SpawnFn } from './burstEffects';
 
 const POOL_SIZE = 300;
+const MAX_DELAYED_EVENTS = 64; // safety cap; the queue is normally tiny
+let warnedPoolOverwrite = false;
+let warnedDelayedOverflow = false;
 
 interface ParticleData {
   active: boolean;
@@ -75,6 +78,15 @@ export default function BurstParticles({ effectQueue }: Props) {
       const idx = nextIdx.current % POOL_SIZE;
       nextIdx.current++;
 
+      // Pool is a ring buffer — overwriting an in-flight particle is
+      // visually unnoticeable but indicates the pool is undersized for
+      // current event volume. Warn once in dev so it can be tuned.
+      if (pool[idx].active && !warnedPoolOverwrite && import.meta.env?.DEV) {
+        warnedPoolOverwrite = true;
+        // eslint-disable-next-line no-console
+        console.warn(`[BurstParticles] particle pool overwrite (POOL_SIZE=${POOL_SIZE}). Consider increasing POOL_SIZE if visual gaps appear.`);
+      }
+
       const [vx, vy, vz] = velFn(n);
       positions[idx * 3] = x + (Math.random() - 0.5) * 0.5;
       positions[idx * 3 + 1] = y + (Math.random() - 0.5) * 0.5;
@@ -126,10 +138,21 @@ export default function BurstParticles({ effectQueue }: Props) {
       const ev = queue.shift()!;
       const isVictory = ev.label === 'victory';
       const isDefeat = ev.label === 'defeat';
-      if (!isVictory && !isDefeat && ev.type === 'hero-attack') {
-        delayedEvents.current.push({ ev, fireAt: now + HERO_ANTICIPATE });
-      } else if (!isVictory && !isDefeat && ev.type === 'monster-attack') {
-        delayedEvents.current.push({ ev, fireAt: now + MONSTER_ANTICIPATE });
+      const isAttack = !isVictory && !isDefeat && (ev.type === 'hero-attack' || ev.type === 'monster-attack');
+      if (isAttack) {
+        // Safety cap: under normal play the queue holds 0–2 entries.
+        // If something blows past MAX_DELAYED_EVENTS we drop the oldest
+        // pending event rather than grow unbounded.
+        if (delayedEvents.current.length >= MAX_DELAYED_EVENTS) {
+          delayedEvents.current.shift();
+          if (!warnedDelayedOverflow && import.meta.env?.DEV) {
+            warnedDelayedOverflow = true;
+            // eslint-disable-next-line no-console
+            console.warn(`[BurstParticles] delayedEvents exceeded ${MAX_DELAYED_EVENTS}; dropping oldest.`);
+          }
+        }
+        const wait = ev.type === 'hero-attack' ? HERO_ANTICIPATE : MONSTER_ANTICIPATE;
+        delayedEvents.current.push({ ev, fireAt: now + wait });
       } else {
         processEvent(ev, ctx);
       }

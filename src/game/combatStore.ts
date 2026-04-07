@@ -198,16 +198,23 @@ const detector = new EventDetector(useGameStore.getState(), {
 
 useGameStore.subscribe((state) => detector.run(state));
 
-// --- Test helpers (kept for combatStore.test.ts compatibility) ---
+// --- Public helpers ---
+//
+// `hasPlayTriggered` is a real public API: dropPreview.ts reads it to
+// suppress duplicate "Rises!" hints when a face card has already fired
+// its tier-2 effect. The other two are test-only utilities for setting
+// up gameStore state without firing combat events.
 
-export function _hasPlayTriggered(cardId: string): boolean {
+export function hasPlayTriggered(cardId: string): boolean {
   return detector.hasPlayTriggered(cardId);
 }
 
+/** @internal — used by tests to reset tracking state between cases. */
 export function _resetTracking(): void {
   detector.withSuppressedEvents(() => {}, () => useGameStore.getState());
 }
 
+/** @internal — used by tests to apply gameStore state without events. */
 export function _withSuppressedEvents(fn: () => void): void {
   detector.withSuppressedEvents(fn, () => useGameStore.getState());
 }
