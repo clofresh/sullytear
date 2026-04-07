@@ -119,13 +119,15 @@ export default function Particles({ combatState }: Props) {
 
   const targetTint = useMemo(() => TINT_NONE.clone(), []);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!meshRef.current) return;
 
     const cs = combatState.current;
     if (!cs) return;
     const isWon = cs.isWon;
     const speed = isWon || cs.combatResult === 'victory' ? 5 : cs.combatResult === 'defeat' ? 0.3 : 1;
+    // Pull clock time once per frame instead of Date.now() per card.
+    const t = state.clock.elapsedTime;
 
     const offsetAttr = meshRef.current.geometry.attributes.aOffset;
     const off = offsetAttr.array as Float32Array;
@@ -136,7 +138,7 @@ export default function Particles({ combatState }: Props) {
       off[i * 3 + 2] += velocities[i * 3 + 2] * delta * 60 * speed;
 
       // Sinusoidal drift
-      off[i * 3] += Math.sin(Date.now() * 0.001 + i) * 0.001 * speed;
+      off[i * 3] += Math.sin(t + i) * 0.001 * speed;
 
       // Defeat: cards sink
       if (cs.combatResult === 'defeat') {
