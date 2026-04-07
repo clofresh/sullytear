@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function LichModel() {
   const groupRef = useRef<THREE.Group>(null!);
@@ -8,23 +8,20 @@ export default function LichModel() {
   const eyeLRef = useRef<THREE.Mesh>(null!);
   const eyeRRef = useRef<THREE.Mesh>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Hovering float
-    groupRef.current.position.y = Math.sin(t * 1.2) * 0.06;
-    groupRef.current.rotation.z = Math.sin(t * 0.7) * 0.02;
-
-    // Staff orb pulse
-    if (orbRef.current) {
-      const pulse = 0.5 + Math.sin(t * 2.5) * 0.3;
-      (orbRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
-      orbRef.current.scale.setScalar(1 + Math.sin(t * 2.5) * 0.1);
-    }
-
-    // Eye flicker
-    const flicker = 0.6 + Math.sin(t * 4) * 0.3;
-    if (eyeLRef.current) (eyeLRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = flicker;
-    if (eyeRRef.current) (eyeRRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = flicker;
+  useIdleAnimation(groupRef, {
+    baseY: 0,
+    breath: { rate: 1.2, amount: 0.06 },
+    sway: { rate: 0.7, amount: 0.02 },
+    extra: (t) => {
+      if (orbRef.current) {
+        const pulse = 0.5 + Math.sin(t * 2.5) * 0.3;
+        (orbRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+        orbRef.current.scale.setScalar(1 + Math.sin(t * 2.5) * 0.1);
+      }
+      const flicker = 0.6 + Math.sin(t * 4) * 0.3;
+      if (eyeLRef.current) (eyeLRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = flicker;
+      if (eyeRRef.current) (eyeRRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = flicker;
+    },
   });
 
   const robe = '#3a1a5a';

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import PoisonDrips from './PoisonDrips';
 
 interface Props {
   poisoned: boolean;
@@ -46,16 +46,13 @@ export default function WerewolfSprite({ poisoned }: Props) {
       {/* Tail */}
       <path d="M48 44 Q56 40 54 34" stroke="#4a4a5a" strokeWidth="3" fill="none" strokeLinecap="round" />
 
-      {poisoned && (
-        <>
-          <motion.circle cx="26" cy="50" r="2" fill="#8a44bb"
-            animate={{ cy: [50, 58], opacity: [0.8, 0] }}
-            transition={{ duration: 1.2, repeat: Infinity }} />
-          <motion.circle cx="38" cy="48" r="1.5" fill="#aa55dd"
-            animate={{ cy: [48, 56], opacity: [0.7, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} />
-        </>
-      )}
+      <PoisonDrips
+        poisoned={poisoned}
+        drips={[
+          { cx: 26, cy: 50, r: 2, duration: 1.2 },
+          { cx: 38, cy: 48, r: 1.5, duration: 1, opacity: 0.7 },
+        ]}
+      />
     </svg>
   );
 }

@@ -1,21 +1,21 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function WerewolfModel() {
   const groupRef = useRef<THREE.Group>(null!);
   const chestRef = useRef<THREE.Mesh>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Heavy breathing
-    if (chestRef.current) {
-      const breathe = Math.sin(t * 1.8) * 0.04;
-      chestRef.current.scale.set(1 + breathe, 1 - breathe * 0.3, 1 + breathe * 0.5);
-    }
-    // Menacing sway
-    groupRef.current.rotation.z = Math.sin(t * 0.8) * 0.02;
-    groupRef.current.position.y = Math.sin(t * 1.6) * 0.02;
+  useIdleAnimation(groupRef, {
+    baseY: 0,
+    breath: { rate: 1.6, amount: 0.02 },
+    sway: { rate: 0.8, amount: 0.02 },
+    extra: (t) => {
+      if (chestRef.current) {
+        const breathe = Math.sin(t * 1.8) * 0.04;
+        chestRef.current.scale.set(1 + breathe, 1 - breathe * 0.3, 1 + breathe * 0.5);
+      }
+    },
   });
 
   const fur = '#4a4a5a';

@@ -1,21 +1,20 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useIdleAnimation } from './useIdleAnimation';
 
 export default function GoblinModel() {
   const groupRef = useRef<THREE.Group>(null!);
   const daggerRef = useRef<THREE.Group>(null!);
 
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    // Idle sway
-    groupRef.current.rotation.z = Math.sin(t * 1.2) * 0.03;
-    groupRef.current.position.y = Math.sin(t * 2) * 0.03;
-
-    // Dagger menacing wave
-    if (daggerRef.current) {
-      daggerRef.current.rotation.z = Math.sin(t * 3) * 0.15 - 0.3;
-    }
+  useIdleAnimation(groupRef, {
+    baseY: 0,
+    breath: { rate: 2, amount: 0.03 },
+    sway: { rate: 1.2, amount: 0.03 },
+    extra: (t) => {
+      if (daggerRef.current) {
+        daggerRef.current.rotation.z = Math.sin(t * 3) * 0.15 - 0.3;
+      }
+    },
   });
 
   const green = '#5a8a3a';

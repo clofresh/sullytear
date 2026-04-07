@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import PoisonDrips from './PoisonDrips';
 
 interface Props {
   poisoned: boolean;
@@ -41,16 +42,13 @@ export default function LichSprite({ poisoned }: Props) {
       <line x1="14" y1="44" x2="11" y2="45" stroke="#d0c8b8" strokeWidth="1" strokeLinecap="round" />
       <line x1="44" y1="38" x2="50" y2="34" stroke="#d0c8b8" strokeWidth="1.5" strokeLinecap="round" />
 
-      {poisoned && (
-        <>
-          <motion.circle cx="26" cy="52" r="2" fill="#8a44bb"
-            animate={{ cy: [52, 60], opacity: [0.8, 0] }}
-            transition={{ duration: 1.2, repeat: Infinity }} />
-          <motion.circle cx="38" cy="50" r="1.5" fill="#aa55dd"
-            animate={{ cy: [50, 58], opacity: [0.7, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} />
-        </>
-      )}
+      <PoisonDrips
+        poisoned={poisoned}
+        drips={[
+          { cx: 26, cy: 52, r: 2, duration: 1.2 },
+          { cx: 38, cy: 50, r: 1.5, duration: 1, opacity: 0.7 },
+        ]}
+      />
     </svg>
   );
 }
