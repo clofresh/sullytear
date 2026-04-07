@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import { type Difficulty, DIFFICULTY_CONFIG } from './difficulty';
 import { type MonsterDef, MONSTER_ROSTER, buildEncounterConfig } from '../combat/monsters';
-import { useCombatStore, _withSuppressedEvents } from './combatStore';
-import { useGameStore } from './store';
-import { useMetaStore } from './metaStore';
+import {
+  startEncounter,
+  endRunEffects,
+  recordRunStarted,
+  recordMonsterSlain,
+  getHeroHp,
+} from './orchestrator';
 
 interface RunState {
   isRunActive: boolean;
@@ -60,12 +64,8 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       runResult: 'none',
     });
 
-    _withSuppressedEvents(() => {
-      useGameStore.getState().newGame();
-    });
-    useCombatStore.getState().startCombat(config);
-
-    useMetaStore.getState().recordRunStarted();
+    startEncounter(config);
+    recordRunStarted();
   },
 
   advanceEncounter: () => {
@@ -73,11 +73,11 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     const { difficulty, encounters, currentEncounterIndex, heroMaxHp } = state;
 
     // Calculate gold for defeated monster
-    const heroHp = useCombatStore.getState().heroHp;
+    const heroHp = getHeroHp();
     const gold = calculateGold(encounters[currentEncounterIndex], difficulty, heroHp, heroMaxHp);
     const newGoldEarned = state.goldEarned + gold;
 
-    useMetaStore.getState().recordMonsterSlain();
+    recordMonsterSlain();
 
     const nextIndex = currentEncounterIndex + 1;
 
@@ -102,18 +102,12 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       lastGoldAwarded: gold,
     });
 
-    _withSuppressedEvents(() => {
-      useGameStore.getState().newGame();
-    });
-    useCombatStore.getState().startCombat(config);
+    startEncounter(config);
   },
 
   endRun: (result: 'victory' | 'defeat') => {
     const state = get();
-    useMetaStore.getState().addGold(state.goldEarned);
-    if (result === 'victory') {
-      useMetaStore.getState().recordRunCompleted();
-    }
+    endRunEffects(state.goldEarned, result);
     set({
       isRunActive: false,
       runResult: result,

@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { useGameStore } from './store';
-import { EventDetector } from './combat/EventDetector';
 
 export interface EncounterConfig {
   monsterName: string;
@@ -165,56 +163,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
   },
 }));
 
-// --- Event detection ---
-// All per-frame change detection lives in EventDetector. The store keeps
-// only the actions that mutate combat state.
-const detector = new EventDetector(useGameStore.getState(), {
-  combat: {
-    dealDamageToMonster: (d, l) => useCombatStore.getState().dealDamageToMonster(d, l),
-    dealDamageToHero: (d) => useCombatStore.getState().dealDamageToHero(d),
-    healMonster: (a) => useCombatStore.getState().healMonster(a),
-    healHero: (a, l) => useCombatStore.getState().healHero(a, l),
-    applyPoison: () => useCombatStore.getState().applyPoison(),
-    setPoisonTurns: (t) => useCombatStore.getState().setPoisonTurns(t),
-    setEmpowerMultiplier: (m) => useCombatStore.getState().setEmpowerMultiplier(m),
-    emitFaceCardEvent: (l) => useCombatStore.getState().emitFaceCardEvent(l),
-  },
-  combatState: () => {
-    const s = useCombatStore.getState();
-    return {
-      empowerMultiplier: s.empowerMultiplier,
-      poisonTurns: s.poisonTurns,
-      combatResult: s.combatResult,
-      monsterAttackDamage: s.monsterAttackDamage,
-      heroHp: s.heroHp,
-    };
-  },
-  setHeroHp: (hp) => useCombatStore.setState({ heroHp: hp }),
-  isCombatPaused: () => {
-    const c = useCombatStore.getState();
-    return !c.isActive || c.combatResult !== 'none';
-  },
-});
-
-useGameStore.subscribe((state) => detector.run(state));
-
-// --- Public helpers ---
-//
-// `hasPlayTriggered` is a real public API: dropPreview.ts reads it to
-// suppress duplicate "Rises!" hints when a face card has already fired
-// its tier-2 effect. The other two are test-only utilities for setting
-// up gameStore state without firing combat events.
-
-export function hasPlayTriggered(cardId: string): boolean {
-  return detector.hasPlayTriggered(cardId);
-}
-
-/** @internal — used by tests to reset tracking state between cases. */
-export function _resetTracking(): void {
-  detector.withSuppressedEvents(() => {}, () => useGameStore.getState());
-}
-
-/** @internal — used by tests to apply gameStore state without events. */
-export function _withSuppressedEvents(fn: () => void): void {
-  detector.withSuppressedEvents(fn, () => useGameStore.getState());
-}
+// Cross-store wiring (event detection + run orchestration) lives in
+// `./orchestrator`. combatStore now exposes only its own state and actions
+// — see issue #34. The helpers below are re-exports kept for backward
+// compatibility with tests and dropPreview.ts.
+export { hasPlayTriggered, _resetTracking, _withSuppressedEvents } from './orchestrator';
