@@ -4,7 +4,6 @@ import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
 import { dragState } from '../game/dragState';
-import DropPreview from './DropPreview';
 
 interface WasteProps {
   cardWidth: number;
@@ -52,7 +51,6 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         className={isValidTarget ? 'valid-drop-target' : undefined}
         style={{ position: 'relative', width: cardWidth, height: cardHeight }}
       >
-        {isValidTarget && <DropPreview targetPileId="waste" />}
         <CardPlaceholder width={cardWidth} height={cardHeight} />
       </div>
     );
@@ -84,7 +82,6 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         zIndex: isDragging ? 1000 : undefined,
       }}
     >
-      {isValidTarget && <DropPreview targetPileId="waste" />}
       {secondCard && (
         <Card
           card={secondCard}
