@@ -24,6 +24,8 @@ function stubCombat(): CombatActionsSlice & { _calls: Record<string, unknown[][]
     setPoisonTurns: track('setPoisonTurns'),
     setEmpowerMultiplier: track('setEmpowerMultiplier'),
     emitFaceCardEvent: track('emitFaceCardEvent'),
+    grantArmor: track('grantArmor'),
+    grantDefense: track('grantDefense'),
     _calls: calls,
   } as ReturnType<typeof stubCombat>;
 }

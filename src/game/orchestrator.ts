@@ -17,7 +17,7 @@
  * delegate cross-store work to `startEncounter` / `endRunEffects` here.
  */
 
-import { useGameStore } from './store';
+import { useGameStore, registerCombatBridge } from './store';
 import { useCombatStore, type EncounterConfig } from './combatStore';
 import { useMetaStore } from './metaStore';
 import { EventDetector } from './combat/EventDetector';
@@ -34,6 +34,8 @@ const detector = new EventDetector(useGameStore.getState(), {
     setPoisonTurns: (t) => useCombatStore.getState().setPoisonTurns(t),
     setEmpowerMultiplier: (m) => useCombatStore.getState().setEmpowerMultiplier(m),
     emitFaceCardEvent: (l) => useCombatStore.getState().emitFaceCardEvent(l),
+    grantArmor: (a, l) => useCombatStore.getState().grantArmor(a, l),
+    grantDefense: (p, l) => useCombatStore.getState().grantDefense(p, l),
   },
   combatState: () => {
     const s = useCombatStore.getState();
@@ -53,6 +55,13 @@ const detector = new EventDetector(useGameStore.getState(), {
 });
 
 useGameStore.subscribe((state) => detector.run(state));
+
+// Register the combat bridge so gameStore.takeSnapshot/undo can capture
+// and restore combat state alongside solitaire state.
+registerCombatBridge({
+  snapshot: () => useCombatStore.getState().snapshotCombat(),
+  restore: (snap) => useCombatStore.getState().restoreCombatSnapshot(snap),
+});
 
 // --- Public helpers reading detector state -------------------------------
 

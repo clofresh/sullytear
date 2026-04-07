@@ -10,14 +10,14 @@ const TIER_3_EFFECTS: Record<number, string> = {
   [RANK_ACE]: 'Heal 3',
   [RANK_JACK]: 'Poison 3',
   [RANK_QUEEN]: 'Heal 5',
-  [RANK_KING]: 'Empower 2x',
+  [RANK_KING]: '+10 Armor, +10% Def',
 };
 
 const TIER_2_EFFECTS: Record<number, string> = {
   [RANK_ACE]: 'Heal 2',
   [RANK_JACK]: 'Poison 2',
   [RANK_QUEEN]: 'Heal 3',
-  [RANK_KING]: 'Empower 1.5x',
+  [RANK_KING]: '+6 Armor',
 };
 
 export function getDropPreview(cards: Card[], targetPileId: string, sourcePileId?: string): string | null {

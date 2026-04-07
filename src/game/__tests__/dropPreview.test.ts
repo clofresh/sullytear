@@ -47,7 +47,7 @@ describe('getDropPreview', () => {
     });
 
     it('King shows damage + effect description', () => {
-      expect(getDropPreview([makeCard('hearts', 13)], 'foundation-0')).toBe('13 dmg · King Awakens! Empower 2x');
+      expect(getDropPreview([makeCard('hearts', 13)], 'foundation-0')).toBe('13 dmg · King Awakens! +10 Armor, +10% Def');
     });
 
     it('empowered non-face card shows multiplied damage', () => {
@@ -79,7 +79,7 @@ describe('getDropPreview', () => {
     });
 
     it('King first play shows Rises + effect', () => {
-      expect(getDropPreview([makeCard('spades', 13)], 'tableau-0', 'tableau-1')).toBe('King Rises! Empower 1.5x');
+      expect(getDropPreview([makeCard('spades', 13)], 'tableau-0', 'tableau-1')).toBe('King Rises! +6 Armor');
     });
 
     it('face card already triggered returns null', () => {

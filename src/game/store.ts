@@ -5,6 +5,19 @@ import { createDeck, shuffle, dealTableau } from './deck';
 import { canMoveToTableau, canMoveToFoundation, isWin } from './rules';
 import { parsePileId } from './pileId';
 
+// Combat-store bridge. combatStore.ts registers callbacks here at import
+// time, avoiding a circular static import (combatStore already imports
+// useGameStore). Until registered, undo behaves as it always did and just
+// restores solitaire state.
+type CombatBridge = {
+  snapshot: () => NonNullable<Snapshot['combat']>;
+  restore: (snap: NonNullable<Snapshot['combat']>) => void;
+};
+let combatBridge: CombatBridge | null = null;
+export function registerCombatBridge(bridge: CombatBridge): void {
+  combatBridge = bridge;
+}
+
 function takeSnapshot(state: GameState): Snapshot {
   return {
     stock: state.stock.map(c => ({ ...c })),
@@ -13,6 +26,7 @@ function takeSnapshot(state: GameState): Snapshot {
     foundations: state.foundations.map(pile => pile.map(c => ({ ...c }))),
     moves: state.moves,
     stockCycleCount: state.stockCycleCount,
+    combat: combatBridge ? combatBridge.snapshot() : null,
   };
 }
 
@@ -176,6 +190,9 @@ export const useGameStore = create<GameState & GameActions>()(
           isWon: false,
           stockCycleCount: snapshot.stockCycleCount,
         });
+        if (snapshot.combat && combatBridge) {
+          combatBridge.restore(snapshot.combat);
+        }
       },
 
       autoComplete: () => {

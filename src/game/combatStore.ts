@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import type { CombatSnapshot } from './types';
+
+export const MAX_HERO_DEFENSE = 50;
 
 export interface EncounterConfig {
   monsterName: string;
@@ -25,6 +28,8 @@ export interface CombatEvent {
 interface CombatState {
   heroHp: number;
   heroMaxHp: number;
+  heroArmor: number;
+  heroDefense: number;
   monsterHp: number;
   monsterMaxHp: number;
   monsterName: string;
@@ -50,12 +55,18 @@ interface CombatActions {
   setEmpowered: (empowered: boolean) => void;
   setEmpowerMultiplier: (multiplier: number) => void;
   emitFaceCardEvent: (label: string) => void;
+  grantArmor: (amount: number, label?: string) => void;
+  grantDefense: (percent: number, label?: string) => void;
   resetCombat: () => void;
+  snapshotCombat: () => CombatSnapshot;
+  restoreCombatSnapshot: (snap: CombatSnapshot) => void;
 }
 
 export const useCombatStore = create<CombatState & CombatActions>()((set, get) => ({
   heroHp: DEFAULT_ENCOUNTER.heroMaxHp,
   heroMaxHp: DEFAULT_ENCOUNTER.heroMaxHp,
+  heroArmor: 0,
+  heroDefense: 0,
   monsterHp: DEFAULT_ENCOUNTER.monsterMaxHp,
   monsterMaxHp: DEFAULT_ENCOUNTER.monsterMaxHp,
   monsterName: DEFAULT_ENCOUNTER.monsterName,
@@ -73,6 +84,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
     set({
       heroHp: config.heroStartHp ?? config.heroMaxHp,
       heroMaxHp: config.heroMaxHp,
+      heroArmor: 0,
+      heroDefense: 0,
       monsterHp: config.monsterMaxHp,
       monsterMaxHp: config.monsterMaxHp,
       monsterName: config.monsterName,
@@ -103,10 +116,15 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
   dealDamageToHero: (damage: number) => {
     const state = get();
     if (state.combatResult !== 'none') return;
-    const newHp = Math.max(0, state.heroHp - damage);
+    const reduced = Math.max(0, Math.round(damage * (1 - state.heroDefense / 100)));
+    const absorbed = Math.min(state.heroArmor, reduced);
+    const hpDamage = reduced - absorbed;
+    const newArmor = state.heroArmor - absorbed;
+    const newHp = Math.max(0, state.heroHp - hpDamage);
     set({
       heroHp: newHp,
-      lastEvent: { type: 'monster-attack', damage },
+      heroArmor: newArmor,
+      lastEvent: { type: 'monster-attack', damage: reduced },
       eventId: state.eventId + 1,
       combatResult: newHp <= 0 ? 'defeat' : 'none',
     });
@@ -158,8 +176,59 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
     });
   },
 
+  grantArmor: (amount: number, label?: string) => {
+    const state = get();
+    if (state.combatResult !== 'none') return;
+    set({
+      heroArmor: state.heroArmor + amount,
+      lastEvent: { type: 'face-card', damage: amount, label },
+      eventId: state.eventId + 1,
+    });
+  },
+
+  grantDefense: (percent: number, label?: string) => {
+    const state = get();
+    if (state.combatResult !== 'none') return;
+    set({
+      heroDefense: Math.min(MAX_HERO_DEFENSE, state.heroDefense + percent),
+      lastEvent: { type: 'face-card', damage: percent, label },
+      eventId: state.eventId + 1,
+    });
+  },
+
   resetCombat: () => {
     get().startCombat();
+  },
+
+  snapshotCombat: (): CombatSnapshot => {
+    const s = get();
+    return {
+      heroHp: s.heroHp,
+      heroMaxHp: s.heroMaxHp,
+      heroArmor: s.heroArmor,
+      heroDefense: s.heroDefense,
+      monsterHp: s.monsterHp,
+      monsterMaxHp: s.monsterMaxHp,
+      empowerMultiplier: s.empowerMultiplier,
+      empowered: s.empowered,
+      poisonTurns: s.poisonTurns,
+      combatResult: s.combatResult,
+    };
+  },
+
+  restoreCombatSnapshot: (snap: CombatSnapshot) => {
+    set({
+      heroHp: snap.heroHp,
+      heroMaxHp: snap.heroMaxHp,
+      heroArmor: snap.heroArmor,
+      heroDefense: snap.heroDefense,
+      monsterHp: snap.monsterHp,
+      monsterMaxHp: snap.monsterMaxHp,
+      empowerMultiplier: snap.empowerMultiplier,
+      empowered: snap.empowered,
+      poisonTurns: snap.poisonTurns,
+      combatResult: snap.combatResult,
+    });
   },
 }));
 

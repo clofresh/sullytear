@@ -44,7 +44,8 @@ export function detectFoundationChanges(
         ctx.combat.healHero(5);
         ctx.combat.emitFaceCardEvent('Queen Awakens!');
       } else if (topCard.rank === 13) {
-        ctx.combat.setEmpowerMultiplier(2.0);
+        ctx.combat.grantArmor(10, 'King Awakens!');
+        ctx.combat.grantDefense(10, 'King Awakens!');
         ctx.combat.emitFaceCardEvent('King Awakens!');
       }
     } else if (currentLengths[i] < prevLengths[i]) {

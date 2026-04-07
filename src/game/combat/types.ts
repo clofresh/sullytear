@@ -31,6 +31,8 @@ export interface CombatActionsSlice {
   setPoisonTurns: (turns: number) => void;
   setEmpowerMultiplier: (multiplier: number) => void;
   emitFaceCardEvent: (label: string) => void;
+  grantArmor: (amount: number, label?: string) => void;
+  grantDefense: (percent: number, label?: string) => void;
 }
 
 /**

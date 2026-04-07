@@ -22,6 +22,8 @@ function stubCombat(): CombatActionsSlice & { _calls: Record<string, unknown[][]
     setPoisonTurns: track('setPoisonTurns'),
     setEmpowerMultiplier: track('setEmpowerMultiplier'),
     emitFaceCardEvent: track('emitFaceCardEvent'),
+    grantArmor: track('grantArmor'),
+    grantDefense: track('grantDefense'),
     _calls: calls,
   } as ReturnType<typeof stubCombat>;
 }
@@ -91,11 +93,11 @@ describe('faceCardMoveDetector', () => {
     expect(combat._calls.emitFaceCardEvent?.[0]).toEqual(['Queen Rises!']);
   });
 
-  it('triggers King Rises! (empower 1.5) tier-2', () => {
+  it('triggers King Rises! (+6 armor) tier-2', () => {
     const { nextTab, prevPiles, nextPiles, prevLengths } = moveFaceCardToCol0(13);
     const { ctx, combat } = makeCtx();
     detectFaceCardMoves(prevPiles, nextPiles, prevLengths, 0, { tableau: nextTab, waste: [], moves: 1 }, ctx);
-    expect(combat._calls.setEmpowerMultiplier?.[0]).toEqual([1.5]);
+    expect(combat._calls.grantArmor?.[0]).toEqual([6, 'King Rises!']);
     expect(combat._calls.emitFaceCardEvent?.[0]).toEqual(['King Rises!']);
   });
 
@@ -125,7 +127,7 @@ describe('faceCardMoveDetector', () => {
     expect(triggered.has('hearts-12')).toBe(false);
   });
 
-  it('reverses King tier-2 on undo (empower → 1.0)', () => {
+  it('clears playTriggered for King on undo (armor restore is handled by combat snapshot, not this detector)', () => {
     const card = makeCard('hearts', 13);
     const triggered = new Set<string>(['hearts-13']);
     const tabBack = emptyTab();
@@ -133,9 +135,9 @@ describe('faceCardMoveDetector', () => {
     const piles = buildFaceCardPiles({ tableau: tabBack, waste: [] });
     const prevPiles = new Map<string, string>([['hearts-13', 'tableau-0']]);
 
-    const { ctx, combat } = makeCtx({}, triggered);
+    const { ctx } = makeCtx({}, triggered);
     detectFaceCardMoves(prevPiles, piles, tabBack.map(p => p.length), 5, { tableau: tabBack, waste: [], moves: 4 }, ctx);
-    expect(combat._calls.setEmpowerMultiplier?.[0]).toEqual([1.0]);
+    expect(triggered.has('hearts-13')).toBe(false);
   });
 });
 
@@ -170,7 +172,7 @@ describe('revealDetector', () => {
     for (const [rank, expected] of [
       [11, ['Jack Stirs...', 'setPoisonTurns', 1]] as const,
       [12, ['Queen Stirs...', 'healHero', 2]] as const,
-      [13, ['King Stirs...', 'setEmpowerMultiplier', 1.25]] as const,
+      [13, ['King Stirs...', 'grantArmor', 3]] as const,
     ]) {
       const tab = emptyTab();
       tab[0] = [makeCard('hearts', rank as Rank)];
@@ -180,7 +182,8 @@ describe('revealDetector', () => {
       detectReveals(prevCounts, prevIds, tab, ctx);
       const [label, action, value] = expected;
       expect(combat._calls.emitFaceCardEvent?.[0]).toEqual([label]);
-      expect(combat._calls[action]?.[0]).toEqual([value]);
+      // grantArmor passes a label, others don't.
+      expect(combat._calls[action]?.[0]?.[0]).toEqual(value);
     }
   });
 

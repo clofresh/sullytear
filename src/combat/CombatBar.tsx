@@ -32,6 +32,8 @@ export default function CombatBar() {
   }, [updatePositions]);
   const heroHp = useCombatStore(s => s.heroHp);
   const heroMaxHp = useCombatStore(s => s.heroMaxHp);
+  const heroArmor = useCombatStore(s => s.heroArmor);
+  const heroDefense = useCombatStore(s => s.heroDefense);
   const monsterHp = useCombatStore(s => s.monsterHp);
   const monsterMaxHp = useCombatStore(s => s.monsterMaxHp);
   const monsterName = useCombatStore(s => s.monsterName);
@@ -56,7 +58,11 @@ export default function CombatBar() {
         <div className="combatant hero-side">
           <div ref={heroRef}><HeroSprite shake={isHeroHit} empowered={empowered} /></div>
           <div className="combatant-info">
-            <div className="combatant-name">Hero</div>
+            <div className="combatant-name">
+              Hero
+              {heroArmor > 0 && <span className="hero-armor"> · {heroArmor} ARM</span>}
+              {heroDefense > 0 && <span className="hero-defense"> · {heroDefense}% DEF</span>}
+            </div>
             <HealthBar current={heroHp} max={heroMaxHp} side="left" />
           </div>
           {isHeroHit && lastEvent && (
