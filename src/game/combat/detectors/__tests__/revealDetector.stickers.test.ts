@@ -51,6 +51,7 @@ describe('revealDetector sticker hooks', () => {
         getAll: () => [],
         foundationDamageBonus: () => 0,
         onReveal,
+        onUnreveal: vi.fn(),
         onDamageDealt: () => 0,
       },
     };
@@ -67,5 +68,46 @@ describe('revealDetector sticker hooks', () => {
     expect(onReveal).toHaveBeenCalledOnce();
     // Chip 2 + Volatile 8
     expect(combat._calls.dealDamageToMonster).toEqual([[2, 'Reveal!'], [8, 'Volatile!']]);
+  });
+
+  it('calls stickers.onUnreveal and heals back Volatile damage on undo', () => {
+    const combat = stubCombat();
+    // Simulate the EventDetector wiring: Volatile heals monster by rank on unreveal.
+    const onUnreveal = vi.fn((card: Card) => {
+      combat.healMonster(card.rank);
+    });
+    const ctx: DetectorContext = {
+      combat,
+      combatState: () => ({
+        empowerMultiplier: 1.0,
+        poisonTurns: 0,
+        combatResult: 'none',
+        monsterAttackDamage: 12,
+        heroHp: 50,
+      }),
+      setHeroHp: vi.fn(),
+      playTriggeredCards: new Set(),
+      revealStreak: { value: 0 },
+      stickers: {
+        getAll: () => [],
+        foundationDamageBonus: () => 0,
+        onReveal: vi.fn(),
+        onUnreveal,
+        onDamageDealt: () => 0,
+      },
+    };
+
+    // A previously face-up 8 is now face-down (undo).
+    const unrevealed = makeCard('hearts', 8, false);
+    const tableau: Card[][] = [[unrevealed], [], [], [], [], [], []];
+    // Before: 0 face-down in column 0 (it was face-up). Not in prev face-down ids.
+    const prevFaceDownCounts = [0, 0, 0, 0, 0, 0, 0];
+    const prevFaceDownIds = new Set<string>();
+
+    detectReveals(prevFaceDownCounts, prevFaceDownIds, tableau, ctx);
+
+    expect(onUnreveal).toHaveBeenCalledOnce();
+    // Chip un-reveal heal (2) + Volatile heal back (8)
+    expect(combat._calls.healMonster).toEqual([[2], [8]]);
   });
 });

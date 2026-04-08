@@ -51,6 +51,7 @@ function makeCtx(
       getAll: () => [],
       foundationDamageBonus,
       onReveal: () => {},
+        onUnreveal: () => {},
       onDamageDealt,
     },
   };

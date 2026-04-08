@@ -96,6 +96,13 @@ export class EventDetector {
           }
         }
       },
+      onUnreveal: (card) => {
+        for (const s of findCardStickers(allStickers, card.id)) {
+          if (s.defId === 'volatile') {
+            combat.healMonster(card.rank);
+          }
+        }
+      },
       onDamageDealt: (amount) => {
         let heal = 0;
         for (const s of findHeroStickers(allStickers)) {

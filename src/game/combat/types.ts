@@ -76,6 +76,8 @@ export interface DetectorContext {
     foundationDamageBonus: (card: Card, pileId: PileId) => number;
     /** Additional events fired on reveal (e.g. Volatile damage). */
     onReveal: (card: Card) => void;
+    /** Reverse of onReveal for undo (e.g. heal back Volatile damage). */
+    onUnreveal: (card: Card) => void;
     /** After any damage-to-monster event: returns hero-heal delta from Vampire etc. */
     onDamageDealt: (amount: number) => number;
   };

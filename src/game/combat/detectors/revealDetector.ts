@@ -41,6 +41,7 @@ export function detectReveals(
 
       for (const card of tableau[i]) {
         if (card.faceUp || prevFaceDownIds.has(card.id)) continue;
+        ctx.stickers.onUnreveal(card);
         if (card.rank === 1) {
           ctx.setHeroHp(Math.max(0, ctx.combatState().heroHp - 1));
         }

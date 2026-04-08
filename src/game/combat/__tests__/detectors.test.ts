@@ -50,6 +50,7 @@ function makeCtx(overrides: Partial<{ empowerMultiplier: number; poisonTurns: nu
       getAll: () => [],
       foundationDamageBonus: () => 0,
       onReveal: () => {},
+        onUnreveal: () => {},
       onDamageDealt: () => 0,
     },
   };
