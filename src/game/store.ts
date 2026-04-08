@@ -18,7 +18,8 @@ export function registerCombatBridge(bridge: CombatBridge): void {
   combatBridge = bridge;
 }
 
-function takeSnapshot(state: GameState): Snapshot {
+/** @internal Exported for benchmarking only — see takeSnapshot.bench.ts. */
+export function takeSnapshot(state: GameState): Snapshot {
   return {
     stock: state.stock.map(c => ({ ...c })),
     waste: state.waste.map(c => ({ ...c })),
