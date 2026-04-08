@@ -360,18 +360,20 @@ describe('gameStore', () => {
         heroArmor: useCombatStore.getState().heroArmor,
         heroDefense: useCombatStore.getState().heroDefense,
         monsterHp: useCombatStore.getState().monsterHp,
+        monsterThreat: useCombatStore.getState().monsterThreat,
         empowerMultiplier: useCombatStore.getState().empowerMultiplier,
         poisonTurns: useCombatStore.getState().poisonTurns,
       };
 
       useGameStore.getState().drawFromStock();
 
-      // Sanity: combat state actually changed
+      // Sanity: combat state actually changed (threat meter filled)
       const after = useCombatStore.getState();
       const changed =
         after.heroHp !== before.heroHp ||
         after.heroArmor !== before.heroArmor ||
         after.monsterHp !== before.monsterHp ||
+        after.monsterThreat !== before.monsterThreat ||
         after.poisonTurns !== before.poisonTurns;
       expect(changed).toBe(true);
 
@@ -382,6 +384,7 @@ describe('gameStore', () => {
       expect(restored.heroArmor).toBe(before.heroArmor);
       expect(restored.heroDefense).toBe(before.heroDefense);
       expect(restored.monsterHp).toBe(before.monsterHp);
+      expect(restored.monsterThreat).toBe(before.monsterThreat);
       expect(restored.empowerMultiplier).toBe(before.empowerMultiplier);
       expect(restored.poisonTurns).toBe(before.poisonTurns);
     });

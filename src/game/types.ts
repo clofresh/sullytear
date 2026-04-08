@@ -16,6 +16,8 @@ export interface CombatSnapshot {
   heroDefense: number;
   monsterHp: number;
   monsterMaxHp: number;
+  monsterThreat: number;
+  monsterThreatMax: number;
   empowerMultiplier: number;
   empowered: boolean;
   poisonTurns: number;

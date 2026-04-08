@@ -28,7 +28,7 @@ export function detectWasteUsage(
     for (let i = currentWasteLength - drawn; i < currentWasteLength; i++) {
       rankSum += waste[i].rank;
     }
-    ctx.combat.dealDamageToHero(rankSum);
+    ctx.combat.addThreat(rankSum);
     if (ctx.combatState().poisonTurns > 0) {
       ctx.combat.applyPoison();
     }

@@ -14,6 +14,7 @@ const config: EncounterConfig = {
   monsterId: 'goblin',
   monsterMaxHp: 30,
   monsterAttackDamage: 5,
+  monsterThreatMax: 25,
   heroMaxHp: 40,
 };
 

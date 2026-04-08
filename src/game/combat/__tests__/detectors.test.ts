@@ -18,6 +18,7 @@ function stubCombat(): CombatActionsSlice & { _calls: Record<string, unknown[][]
   return {
     dealDamageToMonster: track('dealDamageToMonster'),
     dealDamageToHero: track('dealDamageToHero'),
+    addThreat: track('addThreat'),
     healMonster: track('healMonster'),
     healHero: track('healHero'),
     applyPoison: track('applyPoison'),
@@ -79,16 +80,16 @@ describe('foundationDetector', () => {
 });
 
 describe('stockCycleDetector', () => {
-  it('damages hero on cycle increase', () => {
+  it('adds threat on cycle increase', () => {
     const { ctx, combat } = makeCtx();
     detectStockCycle(0, 1, ctx);
-    expect(combat._calls.dealDamageToHero?.[0]).toEqual([12]);
+    expect(combat._calls.addThreat?.[0]).toEqual([24]);
   });
 
-  it('heals hero on cycle undo', () => {
+  it('subtracts threat on cycle undo', () => {
     const { ctx, combat } = makeCtx();
     detectStockCycle(2, 1, ctx);
-    expect(combat._calls.healHero?.[0]).toEqual([12]);
+    expect(combat._calls.addThreat?.[0]).toEqual([-24]);
   });
 });
 
@@ -139,13 +140,14 @@ describe('comboDetector', () => {
 });
 
 describe('wasteDetector', () => {
-  it('damages hero by sum of drawn ranks', () => {
+  it('adds threat equal to sum of drawn ranks', () => {
     const { ctx, combat } = makeCtx();
     detectWasteUsage(0, null, 0, 0,
       [makeCard('hearts', 5), makeCard('hearts', 7), makeCard('hearts', 3)],
       [[], [], [], [], [], [], []],
       false, ctx);
-    expect(combat._calls.dealDamageToHero?.[0]).toEqual([15]);
+    expect(combat._calls.addThreat?.[0]).toEqual([15]);
+    expect(combat._calls.dealDamageToHero).toBeUndefined();
   });
 
   it('damages monster by rank when waste card moved to tableau (no foundation grew)', () => {

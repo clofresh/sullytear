@@ -28,6 +28,7 @@ const detector = new EventDetector(useGameStore.getState(), {
   combat: {
     dealDamageToMonster: (d, l) => useCombatStore.getState().dealDamageToMonster(d, l),
     dealDamageToHero: (d) => useCombatStore.getState().dealDamageToHero(d),
+    addThreat: (a) => useCombatStore.getState().addThreat(a),
     healMonster: (a) => useCombatStore.getState().healMonster(a),
     healHero: (a, l) => useCombatStore.getState().healHero(a, l),
     applyPoison: () => useCombatStore.getState().applyPoison(),
