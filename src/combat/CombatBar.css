@@ -52,6 +52,16 @@
   text-align: right;
 }
 
+.hero-armor {
+  color: #7ec8ff;
+  font-weight: 700;
+}
+
+.hero-defense {
+  color: #b8d8ff;
+  font-weight: 700;
+}
+
 .combat-vs {
   font-size: 13px;
   font-weight: 700;

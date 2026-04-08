@@ -33,5 +33,7 @@ export function buildEncounterConfig(
     monsterAttackDamage: Math.round(monster.attackDamage * cfg.atkMultiplier),
     heroMaxHp,
     heroStartHp,
+    heroStartArmor: cfg.startArmor,
+    heroStartDefense: cfg.startDefense,
   };
 }

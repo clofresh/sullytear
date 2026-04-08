@@ -34,7 +34,7 @@ export function detectFaceCardMoves(
         if (card.rank === 12) {
           ctx.setHeroHp(Math.max(0, ctx.combatState().heroHp - 3));
         }
-        if (card.rank === 13) ctx.combat.setEmpowerMultiplier(1.0);
+        // King: armor reversal handled by combat snapshot restore.
       }
     }
     return;
@@ -59,6 +59,6 @@ export function detectFaceCardMoves(
     if (card.rank === 1)  { ctx.combat.healHero(2);              ctx.combat.emitFaceCardEvent('Ace Rises!'); }
     if (card.rank === 11) { ctx.combat.setPoisonTurns(2);        ctx.combat.emitFaceCardEvent('Jack Rises!'); }
     if (card.rank === 12) { ctx.combat.healHero(3);              ctx.combat.emitFaceCardEvent('Queen Rises!'); }
-    if (card.rank === 13) { ctx.combat.setEmpowerMultiplier(1.5); ctx.combat.emitFaceCardEvent('King Rises!'); }
+    if (card.rank === 13) { ctx.combat.grantArmor(6, 'King Rises!'); ctx.combat.emitFaceCardEvent('King Rises!'); }
   }
 }

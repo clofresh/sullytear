@@ -220,7 +220,7 @@ describe('Combat Store', () => {
       expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 5 + 5);
     });
 
-    it('King placement sets empowerMultiplier to 2.0, next placement deals double', () => {
+    it('King placement (Awakens) grants +10 armor and +10% defense', () => {
       const foundationPile: Card[] = [];
       for (let r = 1; r <= 12; r++) {
         foundationPile.push(makeCard('hearts', r as Rank));
@@ -229,15 +229,14 @@ describe('Combat Store', () => {
       setupGameState({
         tableau: [
           [makeCard('hearts', 13)],
-          [makeCard('diamonds', 1)],
-          [], [], [], [], [],
+          [], [], [], [], [], [],
         ],
         foundations: [foundationPile, [], [], []],
       });
 
-      const monsterHpBefore = useCombatStore.getState().monsterHp;
+      const armorBefore = useCombatStore.getState().heroArmor;
+      const defenseBefore = useCombatStore.getState().heroDefense;
 
-      // Place King
       useGameStore.getState().moveCards({
         cards: [makeCard('hearts', 13)],
         from: 'tableau-0',
@@ -245,21 +244,9 @@ describe('Combat Store', () => {
         to: 'foundation-0',
       });
 
-      expect(useCombatStore.getState().empowerMultiplier).toBe(2.0);
-      const hpAfterKing = useCombatStore.getState().monsterHp;
-      expect(hpAfterKing).toBe(monsterHpBefore - 13);
-
-      // Place Ace on foundation-1 — should deal double (1 * 2 = 2)
-      useGameStore.getState().moveCards({
-        cards: [makeCard('diamonds', 1)],
-        from: 'tableau-1',
-        fromIndex: 0,
-        to: 'foundation-1',
-      });
-
-      expect(useCombatStore.getState().empowerMultiplier).toBe(1.0);
-      // Ace damage doubled: 1 * 2 = 2
-      expect(useCombatStore.getState().monsterHp).toBe(hpAfterKing - 2);
+      // +10 King Awakens, +3 from column clear (source column emptied)
+      expect(useCombatStore.getState().heroArmor).toBe(armorBefore + 10 + 3);
+      expect(useCombatStore.getState().heroDefense).toBe(defenseBefore + 10);
     });
   });
 
@@ -588,7 +575,7 @@ describe('Combat Store', () => {
       expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 2);
     });
 
-    it('revealing a face-down King sets empowerMultiplier to 1.25', () => {
+    it('revealing a face-down King grants +3 armor', () => {
       setupGameState({
         tableau: [
           [makeCard('hearts', 13, false), makeCard('spades', 5)],
@@ -605,7 +592,7 @@ describe('Combat Store', () => {
         to: 'tableau-1',
       });
 
-      expect(useCombatStore.getState().empowerMultiplier).toBe(1.25);
+      expect(useCombatStore.getState().heroArmor).toBe(3);
     });
 
     it('revealing a face-down Ace heals hero 1 HP', () => {
@@ -731,7 +718,7 @@ describe('Combat Store', () => {
       expect(useCombatStore.getState().heroHp).toBe(heroHpBefore + 3 + 5);
     });
 
-    it('moving a King tableau-to-tableau sets empowerMultiplier to 1.5', () => {
+    it('moving a King tableau-to-tableau grants +6 armor', () => {
       // King♠ on column 0, empty column 1 (Kings can go on empty)
       setupGameState({
         tableau: [
@@ -749,7 +736,8 @@ describe('Combat Store', () => {
         to: 'tableau-1',
       });
 
-      expect(useCombatStore.getState().empowerMultiplier).toBe(1.5);
+      // +6 King Rises, +3 from column clear (source column emptied)
+      expect(useCombatStore.getState().heroArmor).toBe(6 + 3);
     });
 
     it('moving an Ace waste-to-tableau heals hero 2 HP', () => {
@@ -960,7 +948,7 @@ describe('Combat Store', () => {
   });
 
   describe('Escalating face card effects across tiers', () => {
-    it('King: empower escalates 1.25 → 1.5 → 2.0 across reveal, play, foundation', () => {
+    it('King: armor accumulates across reveal, play (+column clear), foundation (+column clear)', () => {
       // Column 0: face-down King under a face-up 5♠. Column 1: 6♥. Column 2: empty.
       setupGameState({
         tableau: [
@@ -979,7 +967,7 @@ describe('Combat Store', () => {
         fromIndex: 1,
         to: 'tableau-1',
       });
-      expect(useCombatStore.getState().empowerMultiplier).toBe(1.25);
+      expect(useCombatStore.getState().heroArmor).toBe(3);
 
       // Step 2: Move King to empty column 2 (play trigger)
       useGameStore.getState().moveCards({
@@ -988,7 +976,8 @@ describe('Combat Store', () => {
         fromIndex: 0,
         to: 'tableau-2',
       });
-      expect(useCombatStore.getState().empowerMultiplier).toBe(1.5);
+      // 3 (Stirs) + 6 (Rises) + 3 (column clear) = 12
+      expect(useCombatStore.getState().heroArmor).toBe(12);
 
       // Step 3: Build foundation to accept King, then place it
       const foundationPile: Card[] = [];
@@ -1011,7 +1000,9 @@ describe('Combat Store', () => {
         fromIndex: 0,
         to: 'foundation-0',
       });
-      expect(useCombatStore.getState().empowerMultiplier).toBe(2.0);
+      // prior 12 + 10 (Awakens) + 3 (column clear of tab[2]) = 25
+      expect(useCombatStore.getState().heroArmor).toBe(25);
+      expect(useCombatStore.getState().heroDefense).toBe(10);
     });
 
     it('Jack: poison escalates 1 → 2 → 3 across reveal, play, foundation', () => {
@@ -1163,6 +1154,32 @@ describe('Combat Store', () => {
         heroMaxHp: 50,
       });
       expect(useCombatStore.getState().monsterId).toBe('slime');
+    });
+
+    it('startCombat applies heroStartArmor and heroStartDefense', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+        heroStartArmor: 10,
+        heroStartDefense: 15,
+      });
+      const s = useCombatStore.getState();
+      expect(s.heroArmor).toBe(10);
+      expect(s.heroDefense).toBe(15);
+    });
+
+    it('startCombat without heroStartArmor/Defense defaults to 0', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        heroMaxHp: 50,
+      });
+      const s = useCombatStore.getState();
+      expect(s.heroArmor).toBe(0);
+      expect(s.heroDefense).toBe(0);
     });
 
     it('startCombat without monsterId defaults to dragon', () => {

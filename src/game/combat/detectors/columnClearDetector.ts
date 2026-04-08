@@ -14,6 +14,7 @@ export function detectColumnClears(
   for (let i = 0; i < 7; i++) {
     if (!prevEmpty[i] && currentEmpty[i]) {
       ctx.combat.healHero(5, 'Column Clear!');
+      ctx.combat.grantArmor(3, 'Column Clear!');
     } else if (prevEmpty[i] && !currentEmpty[i]) {
       if (ctx.combatState().combatResult === 'none') {
         ctx.setHeroHp(Math.max(0, ctx.combatState().heroHp - 5));

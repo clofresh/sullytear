@@ -337,6 +337,55 @@ describe('gameStore', () => {
       expect(useGameStore.getState().moves).toBe(0);
     });
 
+    it('restores combat state on undo (heroHp, armor, defense, monsterHp, empower, poison)', () => {
+      // Set up a stock draw that will damage the hero via wasteDetector
+      setup({
+        stock: [makeCard('hearts', 10, false)],
+        waste: [],
+      });
+      // Seed combat state with known values
+      useCombatStore.setState({
+        heroHp: 40,
+        heroMaxHp: 50,
+        heroArmor: 7,
+        heroDefense: 20,
+        monsterHp: 80,
+        monsterMaxHp: 120,
+        empowerMultiplier: 1.5,
+        poisonTurns: 3,
+      });
+
+      const before = {
+        heroHp: useCombatStore.getState().heroHp,
+        heroArmor: useCombatStore.getState().heroArmor,
+        heroDefense: useCombatStore.getState().heroDefense,
+        monsterHp: useCombatStore.getState().monsterHp,
+        empowerMultiplier: useCombatStore.getState().empowerMultiplier,
+        poisonTurns: useCombatStore.getState().poisonTurns,
+      };
+
+      useGameStore.getState().drawFromStock();
+
+      // Sanity: combat state actually changed
+      const after = useCombatStore.getState();
+      const changed =
+        after.heroHp !== before.heroHp ||
+        after.heroArmor !== before.heroArmor ||
+        after.monsterHp !== before.monsterHp ||
+        after.poisonTurns !== before.poisonTurns;
+      expect(changed).toBe(true);
+
+      useGameStore.getState().undo();
+
+      const restored = useCombatStore.getState();
+      expect(restored.heroHp).toBe(before.heroHp);
+      expect(restored.heroArmor).toBe(before.heroArmor);
+      expect(restored.heroDefense).toBe(before.heroDefense);
+      expect(restored.monsterHp).toBe(before.monsterHp);
+      expect(restored.empowerMultiplier).toBe(before.empowerMultiplier);
+      expect(restored.poisonTurns).toBe(before.poisonTurns);
+    });
+
     it('caps undoStack at 50 snapshots', () => {
       // Push 60 moves to verify the cap
       setup({

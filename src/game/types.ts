@@ -9,6 +9,19 @@ export interface Card {
   faceUp: boolean;
 }
 
+export interface CombatSnapshot {
+  heroHp: number;
+  heroMaxHp: number;
+  heroArmor: number;
+  heroDefense: number;
+  monsterHp: number;
+  monsterMaxHp: number;
+  empowerMultiplier: number;
+  empowered: boolean;
+  poisonTurns: number;
+  combatResult: 'none' | 'victory' | 'defeat';
+}
+
 export interface Snapshot {
   stock: Card[];
   waste: Card[];
@@ -16,6 +29,7 @@ export interface Snapshot {
   foundations: Card[][];
   moves: number;
   stockCycleCount: number;
+  combat: CombatSnapshot | null;
 }
 
 export interface GameState {

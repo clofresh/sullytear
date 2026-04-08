@@ -60,4 +60,18 @@ describe('buildEncounterConfig', () => {
     const config = buildEncounterConfig(slime, 'normal');
     expect(config.heroStartHp).toBeUndefined();
   });
+
+  it('passes per-difficulty starting armor and defense', () => {
+    const normal = buildEncounterConfig(slime, 'normal');
+    expect(normal.heroStartArmor).toBe(10);
+    expect(normal.heroStartDefense).toBe(15);
+
+    const hard = buildEncounterConfig(slime, 'hard');
+    expect(hard.heroStartArmor).toBe(5);
+    expect(hard.heroStartDefense).toBe(5);
+
+    const nightmare = buildEncounterConfig(slime, 'nightmare');
+    expect(nightmare.heroStartArmor).toBe(0);
+    expect(nightmare.heroStartDefense).toBe(0);
+  });
 });
