@@ -144,3 +144,4 @@ vite.config.d.ts
 
 # Generated at build time
 src/generated/
+.worktrees/
