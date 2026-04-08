@@ -6,7 +6,7 @@ import Tableau from './Tableau';
 import { useGameStore } from '../game/store';
 import { useResponsive } from '../hooks/useResponsive';
 import { useDragApi } from '../game/DragContext';
-import { parsePileId } from '../game/pileId';
+import { foundationId, parsePileId, tableauId } from '../game/pileId';
 import type { PileId } from '../game/types';
 import { resolveDropTarget, type Point } from './dropTarget';
 import './GameBoard.css';
@@ -83,19 +83,30 @@ export default function GameBoard() {
 
     // Get the cards being moved from fresh state
     const parsedSource = parsePileId(dragSource.pileId);
+    const parsedTarget = parsePileId(targetPileId);
+    if (!parsedSource || !parsedTarget) return;
+
     let movingCards: import('../game/types').Card[] = [];
-    if (parsedSource?.kind === 'waste') {
+    if (parsedSource.kind === 'waste') {
       movingCards = state.waste.length > 0 ? [state.waste[state.waste.length - 1]] : [];
-    } else if (parsedSource?.kind === 'tableau') {
+    } else if (parsedSource.kind === 'tableau') {
       movingCards = state.tableau[parsedSource.index].slice(dragSource.cardIndex);
     }
 
     if (movingCards.length > 0) {
+      const from: PileId =
+        parsedSource.kind === 'tableau' ? tableauId(parsedSource.index) :
+        parsedSource.kind === 'foundation' ? foundationId(parsedSource.index) :
+        parsedSource.kind;
+      const to: PileId =
+        parsedTarget.kind === 'tableau' ? tableauId(parsedTarget.index) :
+        parsedTarget.kind === 'foundation' ? foundationId(parsedTarget.index) :
+        parsedTarget.kind;
       state.moveCards({
         cards: movingCards,
-        from: dragSource.pileId as PileId,
+        from,
         fromIndex: dragSource.cardIndex,
-        to: targetPileId as PileId,
+        to,
       });
     }
   }, [cardWidth, dragApi]);

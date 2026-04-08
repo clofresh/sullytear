@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
+import { foundationId } from '../game/pileId';
 import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
 
 interface WasteProps {
@@ -42,7 +43,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         cards: [topCard],
         from: 'waste',
         fromIndex: waste.length - 1,
-        to: `foundation-${fi}`,
+        to: foundationId(fi),
       });
     }
   };
@@ -81,7 +82,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
             onDoubleClick={handleDoubleClick}
             draggable
             onDragStart={() => { setIsDragging(true); onDragStart?.('waste', waste.length - 1); }}
-            onDragEnd={(info) => { setIsDragging(false); onDragEnd?.({ x: info.event.clientX, y: info.event.clientY }); }}
+            onDragEnd={(point) => { setIsDragging(false); onDragEnd?.(point); }}
           />
         </motion.div>
       </AnimatePresence>

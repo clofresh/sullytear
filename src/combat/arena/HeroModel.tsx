@@ -13,7 +13,7 @@ export default function HeroModel() {
   const attackPhase = useRef<'idle' | 'anticipate' | 'strike' | 'return'>('idle');
   const attackTimer = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const cs = useCombatStore.getState();
     const group = groupRef.current;
     if (!group) return;
@@ -64,11 +64,15 @@ export default function HeroModel() {
       group.position.z = 0;
     }
 
-    // Empowered glow
+    // Empowered glow. Skip the per-frame write in the (common) idle case
+    // when the light is already at zero. The empowered branch is left
+    // unguarded because the sin wave changes every frame anyway.
     if (glowRef.current) {
-      glowRef.current.intensity = cs.empowered
-        ? 1.5 + Math.sin(Date.now() * 0.005) * 0.5
-        : 0;
+      if (cs.empowered) {
+        glowRef.current.intensity = 1.5 + Math.sin(state.clock.elapsedTime * 5) * 0.5;
+      } else if (glowRef.current.intensity !== 0) {
+        glowRef.current.intensity = 0;
+      }
     }
   });
 
