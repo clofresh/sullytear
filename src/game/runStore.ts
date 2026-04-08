@@ -254,6 +254,11 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     set({
       isRunActive: false,
       runResult: result,
+      rewardPhase: 'none',
+      rewardSeed: 0,
+      pendingDeal: null,
+      pendingEncounterIndex: null,
+      pickedStickerDefId: null,
     });
   },
 
