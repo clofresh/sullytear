@@ -7,6 +7,12 @@ import { detectFaceCardMoves } from './detectors/faceCardMoveDetector';
 import { detectColumnClears } from './detectors/columnClearDetector';
 import { detectReveals } from './detectors/revealDetector';
 import { detectCombo } from './detectors/comboDetector';
+import type { Sticker } from '../stickers/types';
+import {
+  findCardStickers,
+  findPileStickers,
+  findHeroStickers,
+} from '../stickers/queries';
 
 export interface EventDetectorDeps {
   combat: CombatActionsSlice;
@@ -16,6 +22,7 @@ export interface EventDetectorDeps {
    *  tracking snapshots are still updated so we don't fire stale events
    *  on the next frame. */
   isCombatPaused: () => boolean;
+  getStickers: () => Sticker[];
 }
 
 /**
@@ -68,12 +75,44 @@ export class EventDetector {
     }
 
     const next = snapshotGame(state);
+    const allStickers = this.deps.getStickers();
+    const combat = this.deps.combat;
+    const stickersHook: DetectorContext['stickers'] = {
+      getAll: () => allStickers,
+      foundationDamageBonus: (card, pileId) => {
+        let bonus = 0;
+        for (const s of findCardStickers(allStickers, card.id)) {
+          if (s.defId === 'sharpened') bonus += 3;
+        }
+        for (const s of findPileStickers(allStickers, pileId)) {
+          if (s.defId === 'forge') bonus += 2;
+        }
+        return bonus;
+      },
+      onReveal: (card) => {
+        for (const s of findCardStickers(allStickers, card.id)) {
+          if (s.defId === 'volatile') {
+            combat.dealDamageToMonster(card.rank, 'Volatile!');
+          }
+        }
+      },
+      onDamageDealt: (amount) => {
+        let heal = 0;
+        for (const s of findHeroStickers(allStickers)) {
+          if (s.defId === 'vampire') {
+            heal += Math.max(1, Math.floor(amount * 0.1));
+          }
+        }
+        return heal;
+      },
+    };
     const ctx: DetectorContext = {
       combat: this.deps.combat,
       combatState: this.deps.combatState,
       setHeroHp: this.deps.setHeroHp,
       playTriggeredCards: this.playTriggeredCards,
       revealStreak: this.revealStreak,
+      stickers: stickersHook,
     };
 
     const { foundationGrew } = detectFoundationChanges(this.prev.foundationLengths, state.foundations, ctx);
