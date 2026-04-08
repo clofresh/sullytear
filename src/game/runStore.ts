@@ -10,6 +10,7 @@ import {
 } from './orchestrator';
 import type { Sticker } from './stickers/types';
 import type { EncounterConfig } from './combatStore';
+import { buildDeal, type PreDealtDeal } from './store';
 
 /**
  * Apply next-scope monster stickers to a freshly-built EncounterConfig.
@@ -32,6 +33,8 @@ function applyNextMonsterStickers(
   return consumed;
 }
 
+export type RewardPhase = 'none' | 'draft' | 'placement';
+
 interface RunState {
   isRunActive: boolean;
   difficulty: Difficulty;
@@ -42,10 +45,19 @@ interface RunState {
   lastGoldAwarded: number;
   runResult: 'none' | 'victory' | 'defeat';
   stickers: Sticker[];
+  // Between-encounter reward + placement state.
+  rewardPhase: RewardPhase;
+  rewardSeed: number;
+  pendingDeal: PreDealtDeal | null;
+  pendingEncounterIndex: number | null;
+  pickedStickerDefId: string | null;
 }
 
 interface RunActions {
   startRun: (difficulty: Difficulty) => void;
+  beginReward: () => void;
+  pickSticker: (defId: string) => void;
+  commitEncounter: () => void;
   advanceEncounter: () => void;
   endRun: (result: 'victory' | 'defeat') => void;
   addSticker: (sticker: Sticker) => void;
@@ -75,6 +87,11 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
   lastGoldAwarded: 0,
   runResult: 'none',
   stickers: [],
+  rewardPhase: 'none',
+  rewardSeed: 0,
+  pendingDeal: null,
+  pendingEncounterIndex: null,
+  pickedStickerDefId: null,
 
   startRun: (difficulty: Difficulty) => {
     const encounters = pickEncounters();
@@ -97,10 +114,99 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       lastGoldAwarded: 0,
       runResult: 'none',
       stickers: [],
+      rewardPhase: 'none',
+      rewardSeed: 0,
+      pendingDeal: null,
+      pendingEncounterIndex: null,
+      pickedStickerDefId: null,
     });
 
     startEncounter(config);
     recordRunStarted();
+  },
+
+  beginReward: () => {
+    const state = get();
+    const { encounters, currentEncounterIndex } = state;
+    const nextIndex = currentEncounterIndex + 1;
+
+    // Calculate gold for defeated monster (same as advanceEncounter).
+    const heroHp = getHeroHp();
+    const gold = calculateGold(
+      encounters[currentEncounterIndex],
+      state.difficulty,
+      heroHp,
+      state.heroMaxHp,
+    );
+
+    // Record meta progression once, now that the monster is truly down.
+    recordMonsterSlain();
+
+    if (nextIndex >= encounters.length) {
+      // No reward for the final encounter — go straight to victory.
+      set({
+        currentEncounterIndex: nextIndex,
+        goldEarned: state.goldEarned + gold,
+        lastGoldAwarded: gold,
+      });
+      get().endRun('victory');
+      return;
+    }
+
+    // Pre-build the next encounter's deal so the placement screen can
+    // render it face-down with stable card ids.
+    const pendingDeal = buildDeal();
+    // Stable-enough seed derived from values known at reward entry.
+    const rewardSeed =
+      (currentEncounterIndex * 0x9e37 + state.goldEarned + gold) >>> 0;
+
+    set({
+      goldEarned: state.goldEarned + gold,
+      lastGoldAwarded: gold,
+      rewardPhase: 'draft',
+      rewardSeed,
+      pendingDeal,
+      pendingEncounterIndex: nextIndex,
+      pickedStickerDefId: null,
+    });
+  },
+
+  pickSticker: (defId: string) => {
+    set({ rewardPhase: 'placement', pickedStickerDefId: defId });
+  },
+
+  commitEncounter: () => {
+    const state = get();
+    const nextIndex = state.pendingEncounterIndex;
+    if (nextIndex === null) return;
+
+    const heroHp = getHeroHp();
+    const carriedHp = Math.min(heroHp + 10, state.heroMaxHp);
+    const config = buildEncounterConfig(
+      state.encounters[nextIndex],
+      state.difficulty,
+      state.heroMaxHp,
+      carriedHp,
+    );
+
+    const consumed = applyNextMonsterStickers(config, state.stickers);
+    const remaining =
+      consumed.length > 0
+        ? state.stickers.filter((s) => !consumed.includes(s.id))
+        : state.stickers;
+
+    const preDealt = state.pendingDeal ?? undefined;
+
+    set({
+      currentEncounterIndex: nextIndex,
+      stickers: remaining,
+      rewardPhase: 'none',
+      pendingDeal: null,
+      pendingEncounterIndex: null,
+      pickedStickerDefId: null,
+    });
+
+    startEncounter(config, preDealt);
   },
 
   advanceEncounter: () => {

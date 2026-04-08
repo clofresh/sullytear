@@ -62,7 +62,7 @@ export type PileId =
   | `foundation-${number}`;
 
 export interface GameActions {
-  newGame: (drawMode?: 1 | 3) => void;
+  newGame: (drawMode?: 1 | 3, preDealt?: import('./store').PreDealtDeal) => void;
   drawFromStock: () => void;
   moveCards: (payload: MovePayload) => void;
   undo: () => void;

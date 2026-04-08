@@ -17,7 +17,7 @@
  * delegate cross-store work to `startEncounter` / `endRunEffects` here.
  */
 
-import { useGameStore, registerCombatBridge } from './store';
+import { useGameStore, registerCombatBridge, type PreDealtDeal } from './store';
 import { useCombatStore, type EncounterConfig } from './combatStore';
 import { useMetaStore } from './metaStore';
 import { EventDetector } from './combat/EventDetector';
@@ -92,9 +92,9 @@ export function _withSuppressedEvents(fn: () => void): void {
  * Begin a new encounter: deal a fresh deck (without firing combat events)
  * and start combat with the given monster config.
  */
-export function startEncounter(config: EncounterConfig): void {
+export function startEncounter(config: EncounterConfig, preDealt?: PreDealtDeal): void {
   _withSuppressedEvents(() => {
-    useGameStore.getState().newGame();
+    useGameStore.getState().newGame(undefined, preDealt);
   });
   useCombatStore.getState().startCombat(config);
 }
