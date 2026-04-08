@@ -3,6 +3,10 @@ name: PR Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
 
 permissions:
   contents: write
