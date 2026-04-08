@@ -35,6 +35,7 @@ const Bone = z.object({
 
 const PartBase = {
   pos: Vec3,
+  rot: Vec3.optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   bone: z.string().min(1),
 };
@@ -52,7 +53,49 @@ const BoxPart = z.object({
   ...PartBase,
 });
 
-const Part = z.discriminatedUnion('shape', [SpherePart, BoxPart]);
+const CylinderPart = z.object({
+  shape: z.literal('cylinder'),
+  radius: z.number().positive(),
+  height: z.number().positive(),
+  ...PartBase,
+});
+
+const ConePart = z.object({
+  shape: z.literal('cone'),
+  radius: z.number().positive(),
+  height: z.number().positive(),
+  ...PartBase,
+});
+
+const CapsulePart = z.object({
+  shape: z.literal('capsule'),
+  radius: z.number().positive(),
+  height: z.number().positive(),
+  ...PartBase,
+});
+
+const TorusPart = z.object({
+  shape: z.literal('torus'),
+  radius: z.number().positive(),
+  thickness: z.number().positive(),
+  ...PartBase,
+});
+
+const PlanePart = z.object({
+  shape: z.literal('plane'),
+  size: z.tuple([z.number().positive(), z.number().positive()]),
+  ...PartBase,
+});
+
+const Part = z.discriminatedUnion('shape', [
+  SpherePart,
+  BoxPart,
+  CylinderPart,
+  ConePart,
+  CapsulePart,
+  TorusPart,
+  PlanePart,
+]);
 
 const Track = z.object({
   bone: z.string().min(1),
@@ -83,11 +126,14 @@ const Model = z.object({
 });
 
 // ---------- geometry --------------------------------------------------------
+//
+// All generators produce geometry centred on the origin and Y-up where
+// applicable, matching Three.js's default geometry orientations. The uniform
+// transform step (transformGeometry) then applies the part's optional `rot`
+// (Euler XYZ — Three.js default order) followed by translation by `pos`.
 
-// UV sphere, indexed. Returns {positions: Float32Array, normals: Float32Array,
-// indices: Uint32Array}. Mirrors Three.js SphereGeometry topology closely
-// enough for look-parity with the existing procedural models.
-function sphereGeometry(radius, center, scale, widthSeg = 16, heightSeg = 12) {
+// UV sphere centered at the origin.
+function sphereGeometry(radius, scale = [1, 1, 1], widthSeg = 16, heightSeg = 12) {
   const [sx, sy, sz] = scale;
   const positions = [];
   const normals = [];
@@ -102,11 +148,7 @@ function sphereGeometry(radius, center, scale, widthSeg = 16, heightSeg = 12) {
       const ny = Math.cos(phi);
       const nz = Math.sin(theta) * Math.sin(phi);
       normals.push(nx, ny, nz);
-      positions.push(
-        center[0] + nx * radius * sx,
-        center[1] + ny * radius * sy,
-        center[2] + nz * radius * sz,
-      );
+      positions.push(nx * radius * sx, ny * radius * sy, nz * radius * sz);
     }
   }
   const stride = widthSeg + 1;
@@ -120,30 +162,20 @@ function sphereGeometry(radius, center, scale, widthSeg = 16, heightSeg = 12) {
       if (iy !== heightSeg - 1) indices.push(b, c, d);
     }
   }
-  return {
-    positions: new Float32Array(positions),
-    normals: new Float32Array(normals),
-    indices: new Uint32Array(indices),
-  };
+  return packGeometry(positions, normals, indices);
 }
 
-// Axis-aligned box with per-face duplicated vertices (flat normals).
-function boxGeometry(size, center) {
+// Axis-aligned box centred on the origin, with per-face duplicated vertices
+// (flat normals).
+function boxGeometry(size) {
   const [sw, sh, sd] = size.map((s) => s / 2);
-  const [cx, cy, cz] = center;
   const faces = [
-    // +X
-    { n: [1, 0, 0], v: [[cx + sw, cy - sh, cz + sd], [cx + sw, cy - sh, cz - sd], [cx + sw, cy + sh, cz - sd], [cx + sw, cy + sh, cz + sd]] },
-    // -X
-    { n: [-1, 0, 0], v: [[cx - sw, cy - sh, cz - sd], [cx - sw, cy - sh, cz + sd], [cx - sw, cy + sh, cz + sd], [cx - sw, cy + sh, cz - sd]] },
-    // +Y
-    { n: [0, 1, 0], v: [[cx - sw, cy + sh, cz + sd], [cx + sw, cy + sh, cz + sd], [cx + sw, cy + sh, cz - sd], [cx - sw, cy + sh, cz - sd]] },
-    // -Y
-    { n: [0, -1, 0], v: [[cx - sw, cy - sh, cz - sd], [cx + sw, cy - sh, cz - sd], [cx + sw, cy - sh, cz + sd], [cx - sw, cy - sh, cz + sd]] },
-    // +Z
-    { n: [0, 0, 1], v: [[cx - sw, cy - sh, cz + sd], [cx + sw, cy - sh, cz + sd], [cx + sw, cy + sh, cz + sd], [cx - sw, cy + sh, cz + sd]] },
-    // -Z
-    { n: [0, 0, -1], v: [[cx + sw, cy - sh, cz - sd], [cx - sw, cy - sh, cz - sd], [cx - sw, cy + sh, cz - sd], [cx + sw, cy + sh, cz - sd]] },
+    { n: [1, 0, 0],  v: [[ sw, -sh,  sd], [ sw, -sh, -sd], [ sw,  sh, -sd], [ sw,  sh,  sd]] },
+    { n: [-1, 0, 0], v: [[-sw, -sh, -sd], [-sw, -sh,  sd], [-sw,  sh,  sd], [-sw,  sh, -sd]] },
+    { n: [0, 1, 0],  v: [[-sw,  sh,  sd], [ sw,  sh,  sd], [ sw,  sh, -sd], [-sw,  sh, -sd]] },
+    { n: [0, -1, 0], v: [[-sw, -sh, -sd], [ sw, -sh, -sd], [ sw, -sh,  sd], [-sw, -sh,  sd]] },
+    { n: [0, 0, 1],  v: [[-sw, -sh,  sd], [ sw, -sh,  sd], [ sw,  sh,  sd], [-sw,  sh,  sd]] },
+    { n: [0, 0, -1], v: [[ sw, -sh, -sd], [-sw, -sh, -sd], [-sw,  sh, -sd], [ sw,  sh, -sd]] },
   ];
   const positions = [];
   const normals = [];
@@ -154,6 +186,204 @@ function boxGeometry(size, center) {
     for (let i = 0; i < 4; i++) normals.push(...f.n);
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   });
+  return packGeometry(positions, normals, indices);
+}
+
+// Tube generator shared by cylinder and cone (radiusTop=0). Y-axis aligned,
+// height runs from -h/2 to +h/2, capped at both ends. Side normals use the
+// slope so cones light correctly.
+function tubeGeometry(radiusTop, radiusBottom, height, radialSeg = 16) {
+  const positions = [];
+  const normals = [];
+  const indices = [];
+  const halfH = height / 2;
+  const slope = (radiusBottom - radiusTop) / height;
+  // Side wall: ring at -h/2 then ring at +h/2.
+  for (let i = 0; i <= radialSeg; i++) {
+    const theta = (i / radialSeg) * Math.PI * 2;
+    const cx = Math.cos(theta);
+    const cz = Math.sin(theta);
+    // Inclined side normal (unit length).
+    const nLen = Math.hypot(1, slope);
+    const nx = cx / nLen;
+    const ny = slope / nLen;
+    const nz = cz / nLen;
+    positions.push(cx * radiusBottom, -halfH, cz * radiusBottom);
+    normals.push(nx, ny, nz);
+    positions.push(cx * radiusTop, halfH, cz * radiusTop);
+    normals.push(nx, ny, nz);
+  }
+  for (let i = 0; i < radialSeg; i++) {
+    const a = i * 2;
+    const b = i * 2 + 1;
+    const c = i * 2 + 2;
+    const d = i * 2 + 3;
+    indices.push(a, c, b, b, c, d);
+  }
+  // Top cap (skip if radiusTop is 0 — that's the cone tip).
+  if (radiusTop > 0) {
+    const center = positions.length / 3;
+    positions.push(0, halfH, 0);
+    normals.push(0, 1, 0);
+    for (let i = 0; i <= radialSeg; i++) {
+      const theta = (i / radialSeg) * Math.PI * 2;
+      positions.push(Math.cos(theta) * radiusTop, halfH, Math.sin(theta) * radiusTop);
+      normals.push(0, 1, 0);
+    }
+    for (let i = 0; i < radialSeg; i++) {
+      indices.push(center, center + i + 1, center + i + 2);
+    }
+  }
+  // Bottom cap.
+  {
+    const center = positions.length / 3;
+    positions.push(0, -halfH, 0);
+    normals.push(0, -1, 0);
+    for (let i = 0; i <= radialSeg; i++) {
+      const theta = (i / radialSeg) * Math.PI * 2;
+      positions.push(Math.cos(theta) * radiusBottom, -halfH, Math.sin(theta) * radiusBottom);
+      normals.push(0, -1, 0);
+    }
+    for (let i = 0; i < radialSeg; i++) {
+      indices.push(center, center + i + 2, center + i + 1);
+    }
+  }
+  return packGeometry(positions, normals, indices);
+}
+
+function cylinderGeometry(radius, height) {
+  return tubeGeometry(radius, radius, height);
+}
+
+function coneGeometry(radius, height) {
+  return tubeGeometry(0, radius, height);
+}
+
+// Capsule: a Y-axis cylinder of `height` capped by two hemispheres of
+// `radius`. Total height = height + 2*radius (Three.js convention).
+function capsuleGeometry(radius, height, radialSeg = 16, capSeg = 6) {
+  const positions = [];
+  const normals = [];
+  const indices = [];
+  const halfH = height / 2;
+
+  // Top hemisphere: phi in [0, PI/2], y from radius down to 0.
+  // Bottom hemisphere: phi in [PI/2, PI], y from 0 down to -radius.
+  // We weld both hemispheres to the cylinder by sharing the equator rings.
+  // For simplicity we don't share — a small amount of vertex duplication is
+  // fine and the validator only cares about totals.
+  const buildHemisphere = (yOffset, sign) => {
+    // sign = +1 for top (phi 0..PI/2), -1 for bottom (phi PI/2..PI)
+    const startPhi = sign === 1 ? 0 : Math.PI / 2;
+    const endPhi = sign === 1 ? Math.PI / 2 : Math.PI;
+    const baseIndex = positions.length / 3;
+    for (let iy = 0; iy <= capSeg; iy++) {
+      const v = iy / capSeg;
+      const phi = startPhi + v * (endPhi - startPhi);
+      for (let ix = 0; ix <= radialSeg; ix++) {
+        const theta = (ix / radialSeg) * Math.PI * 2;
+        const nx = -Math.cos(theta) * Math.sin(phi);
+        const ny = Math.cos(phi);
+        const nz = Math.sin(theta) * Math.sin(phi);
+        normals.push(nx, ny, nz);
+        positions.push(nx * radius, ny * radius + yOffset, nz * radius);
+      }
+    }
+    const stride = radialSeg + 1;
+    for (let iy = 0; iy < capSeg; iy++) {
+      for (let ix = 0; ix < radialSeg; ix++) {
+        const a = baseIndex + iy * stride + ix + 1;
+        const b = baseIndex + iy * stride + ix;
+        const c = baseIndex + (iy + 1) * stride + ix;
+        const d = baseIndex + (iy + 1) * stride + ix + 1;
+        indices.push(a, b, d);
+        indices.push(b, c, d);
+      }
+    }
+  };
+  buildHemisphere(halfH, 1);
+  buildHemisphere(-halfH, -1);
+
+  // Cylindrical body between -halfH and +halfH.
+  const baseIndex = positions.length / 3;
+  for (let i = 0; i <= radialSeg; i++) {
+    const theta = (i / radialSeg) * Math.PI * 2;
+    const cx = Math.cos(theta);
+    const cz = Math.sin(theta);
+    positions.push(cx * radius, -halfH, cz * radius);
+    normals.push(cx, 0, cz);
+    positions.push(cx * radius, halfH, cz * radius);
+    normals.push(cx, 0, cz);
+  }
+  for (let i = 0; i < radialSeg; i++) {
+    const a = baseIndex + i * 2;
+    const b = baseIndex + i * 2 + 1;
+    const c = baseIndex + i * 2 + 2;
+    const d = baseIndex + i * 2 + 3;
+    indices.push(a, c, b, b, c, d);
+  }
+  return packGeometry(positions, normals, indices);
+}
+
+// Torus in the XY plane (Three.js TorusGeometry default), facing +Z.
+// `radius` is the ring radius (centre to tube centre), `tube` is the tube
+// (cross-section) radius.
+function torusGeometry(radius, tube, radialSeg = 16, tubularSeg = 24) {
+  const positions = [];
+  const normals = [];
+  const indices = [];
+  for (let j = 0; j <= radialSeg; j++) {
+    for (let i = 0; i <= tubularSeg; i++) {
+      const u = (i / tubularSeg) * Math.PI * 2;
+      const v = (j / radialSeg) * Math.PI * 2;
+      const cx = (radius + tube * Math.cos(v)) * Math.cos(u);
+      const cy = (radius + tube * Math.cos(v)) * Math.sin(u);
+      const cz = tube * Math.sin(v);
+      positions.push(cx, cy, cz);
+      const ringX = radius * Math.cos(u);
+      const ringY = radius * Math.sin(u);
+      const nx = cx - ringX;
+      const ny = cy - ringY;
+      const nz = cz;
+      const len = Math.hypot(nx, ny, nz) || 1;
+      normals.push(nx / len, ny / len, nz / len);
+    }
+  }
+  for (let j = 1; j <= radialSeg; j++) {
+    for (let i = 1; i <= tubularSeg; i++) {
+      const a = (tubularSeg + 1) * j + i - 1;
+      const b = (tubularSeg + 1) * (j - 1) + i - 1;
+      const c = (tubularSeg + 1) * (j - 1) + i;
+      const d = (tubularSeg + 1) * j + i;
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+  return packGeometry(positions, normals, indices);
+}
+
+// Plane in the XY plane facing +Z (Three.js PlaneGeometry default).
+function planeGeometry(size) {
+  const [w, h] = size;
+  const hw = w / 2;
+  const hh = h / 2;
+  const positions = [
+    -hw, -hh, 0,
+     hw, -hh, 0,
+     hw,  hh, 0,
+    -hw,  hh, 0,
+  ];
+  const normals = [
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1,
+  ];
+  const indices = [0, 1, 2, 0, 2, 3];
+  return packGeometry(positions, normals, indices);
+}
+
+function packGeometry(positions, normals, indices) {
   return {
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
@@ -161,11 +391,77 @@ function boxGeometry(size, center) {
   };
 }
 
-function buildPartGeometry(part) {
-  if (part.shape === 'sphere') {
-    return sphereGeometry(part.radius, part.pos, part.scale ?? [1, 1, 1]);
+// Apply Euler XYZ rotation (matching Three.js's default `<mesh rotation={[x,y,z]}>`)
+// then translate by `pos`. Geometry is mutated in place. Sequential rotations
+// are applied in order Z, Y, X so that the composed transform equals
+// Rx * Ry * Rz, which matches THREE.Matrix4.makeRotationFromEuler('XYZ').
+function rotateAxis(arr, axis, angle) {
+  if (angle === 0) return;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  for (let i = 0; i < arr.length; i += 3) {
+    const x = arr[i];
+    const y = arr[i + 1];
+    const z = arr[i + 2];
+    if (axis === 'x') {
+      arr[i + 1] = y * c - z * s;
+      arr[i + 2] = y * s + z * c;
+    } else if (axis === 'y') {
+      arr[i] = x * c + z * s;
+      arr[i + 2] = -x * s + z * c;
+    } else {
+      arr[i] = x * c - y * s;
+      arr[i + 1] = x * s + y * c;
+    }
   }
-  return boxGeometry(part.size, part.pos);
+}
+
+function transformGeometry(geo, rot, pos) {
+  if (rot && (rot[0] !== 0 || rot[1] !== 0 || rot[2] !== 0)) {
+    rotateAxis(geo.positions, 'z', rot[2]);
+    rotateAxis(geo.positions, 'y', rot[1]);
+    rotateAxis(geo.positions, 'x', rot[0]);
+    rotateAxis(geo.normals, 'z', rot[2]);
+    rotateAxis(geo.normals, 'y', rot[1]);
+    rotateAxis(geo.normals, 'x', rot[0]);
+  }
+  const [px, py, pz] = pos;
+  for (let i = 0; i < geo.positions.length; i += 3) {
+    geo.positions[i] += px;
+    geo.positions[i + 1] += py;
+    geo.positions[i + 2] += pz;
+  }
+}
+
+function buildPartGeometry(part) {
+  let geo;
+  switch (part.shape) {
+    case 'sphere':
+      geo = sphereGeometry(part.radius, part.scale ?? [1, 1, 1]);
+      break;
+    case 'box':
+      geo = boxGeometry(part.size);
+      break;
+    case 'cylinder':
+      geo = cylinderGeometry(part.radius, part.height);
+      break;
+    case 'cone':
+      geo = coneGeometry(part.radius, part.height);
+      break;
+    case 'capsule':
+      geo = capsuleGeometry(part.radius, part.height);
+      break;
+    case 'torus':
+      geo = torusGeometry(part.radius, part.thickness);
+      break;
+    case 'plane':
+      geo = planeGeometry(part.size);
+      break;
+    default:
+      throw new Error(`unhandled shape "${part.shape}"`);
+  }
+  transformGeometry(geo, part.rot, part.pos);
+  return geo;
 }
 
 // ---------- color -----------------------------------------------------------
@@ -243,11 +539,34 @@ function compile(model) {
   const mesh = doc.createMesh(model.name);
   const jointIndex = new Map(model.bones.map((b, i) => [b.name, i]));
 
-  for (let pi = 0; pi < model.parts.length; pi++) {
-    const part = model.parts[pi];
+  // Build every part's geometry up front so we can compute the global Y
+  // bounds and auto-align the model so its lowest vertex sits at y=0. This
+  // is the only "magic" the compiler performs: TOML authors place parts in
+  // whatever local space matches the source they're porting from, and the
+  // compiler shifts the result so the validator's feet-at-origin contract
+  // is satisfied by construction. No per-model knob.
+  const geos = model.parts.map((part) => {
     const ji = jointIndex.get(part.bone);
-    if (ji == null) throw new Error(`part ${pi} references unknown bone "${part.bone}"`);
-    const geo = buildPartGeometry(part);
+    if (ji == null) throw new Error(`part references unknown bone "${part.bone}"`);
+    return { ji, geo: buildPartGeometry(part), part };
+  });
+  let globalMinY = Infinity;
+  for (const { geo } of geos) {
+    for (let i = 1; i < geo.positions.length; i += 3) {
+      if (geo.positions[i] < globalMinY) globalMinY = geo.positions[i];
+    }
+  }
+  if (Number.isFinite(globalMinY) && globalMinY !== 0) {
+    const shift = -globalMinY;
+    for (const { geo } of geos) {
+      for (let i = 1; i < geo.positions.length; i += 3) {
+        geo.positions[i] += shift;
+      }
+    }
+  }
+
+  for (let pi = 0; pi < geos.length; pi++) {
+    const { ji, geo, part } = geos[pi];
     const vcount = geo.positions.length / 3;
 
     const positionAcc = doc
