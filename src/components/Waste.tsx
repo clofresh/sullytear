@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { findFoundationIndex } from '../game/rules';
+import { foundationId } from '../game/pileId';
 import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
 
 interface WasteProps {
@@ -42,7 +43,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
         cards: [topCard],
         from: 'waste',
         fromIndex: waste.length - 1,
-        to: `foundation-${fi}`,
+        to: foundationId(fi),
       });
     }
   };

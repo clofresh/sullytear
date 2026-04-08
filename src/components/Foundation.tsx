@@ -1,6 +1,7 @@
 import Card, { CardPlaceholder } from './Card';
 import { useGameStore } from '../game/store';
 import { canMoveToFoundation } from '../game/rules';
+import { foundationId } from '../game/pileId';
 import { SUIT_SYMBOLS } from '../utils/constants';
 import { useDropTargetValidation } from '../hooks/useDropTargetValidation';
 import DropPreview from './DropPreview';
@@ -15,7 +16,7 @@ interface FoundationProps {
 
 export default function Foundation({ index, cardWidth, cardHeight }: FoundationProps) {
   const pile = useGameStore(s => s.foundations[index]);
-  const pileId = `foundation-${index}`;
+  const pileId = foundationId(index);
 
   const isValidTarget = useDropTargetValidation(pileId, (drag) => {
     if (drag.cards.length !== 1) return false;
