@@ -7,7 +7,14 @@ import HealthBar from './HealthBar';
 import HeroSprite from './HeroSprite';
 import MonsterSprite from './MonsterSprite';
 import DamageFlash from './DamageFlash';
+import StickerTray from './StickerTray';
+import Sticker from '../components/Sticker';
+import {
+  findHeroStickers,
+  findMonsterStickers,
+} from '../game/stickers/queries';
 import './CombatBar.css';
+import './StickerTray.css';
 
 function ThreatBar({ current, max }: { current: number; max: number }) {
   const ratio = Math.max(0, Math.min(1, max > 0 ? current / max : 0));
@@ -64,6 +71,10 @@ export default function CombatBar() {
   const monsterId = useCombatStore(s => s.monsterId);
   const currentIndex = useRunStore(s => s.currentEncounterIndex);
   const encounters = useRunStore(s => s.encounters);
+  const allStickers = useRunStore(s => s.stickers);
+  const heroStickers = findHeroStickers(allStickers);
+  const monsterStickers = findMonsterStickers(allStickers, 'current');
+  const pileStickers = allStickers.filter((s) => s.target.kind === 'pile');
 
   if (!isActive) return null;
 
@@ -83,6 +94,13 @@ export default function CombatBar() {
               {heroDefense > 0 && <span className="hero-defense"> · {heroDefense}% DEF</span>}
             </div>
             <HealthBar current={heroHp} max={heroMaxHp} side="left" />
+            {heroStickers.length > 0 && (
+              <div className="hud-sticker-row">
+                {heroStickers.map((s) => (
+                  <Sticker key={s.id} defId={s.defId} instanceId={s.id} size="badge" />
+                ))}
+              </div>
+            )}
           </div>
           {isHeroHit && lastEvent && (
             <DamageFlash event={lastEvent} eventId={eventId} />
@@ -109,10 +127,36 @@ export default function CombatBar() {
             <div className="combatant-name">{monsterName}</div>
             <HealthBar current={monsterHp} max={monsterMaxHp} side="right" />
             <ThreatBar current={monsterThreat} max={monsterThreatMax} />
+            {monsterStickers.length > 0 && (
+              <div className="hud-sticker-row">
+                {monsterStickers.map((s) => (
+                  <Sticker key={s.id} defId={s.defId} instanceId={s.id} size="badge" />
+                ))}
+              </div>
+            )}
           </div>
           <div ref={monsterRef}><MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} monsterId={monsterId} /></div>
         </div>
       </div>
+      {pileStickers.length > 0 && (
+        <div className="hud-sticker-row" style={{ justifyContent: 'center', padding: '4px 8px' }}>
+          <span className="hud-sticker-row-label">PILES</span>
+          {pileStickers.map((s) => {
+            const pileLabel =
+              s.target.kind === 'pile' ? String(s.target.pileId) : '';
+            return (
+              <Sticker
+                key={s.id}
+                defId={s.defId}
+                instanceId={s.id}
+                size="badge"
+                title={`${s.defId} — ${pileLabel}`}
+              />
+            );
+          })}
+        </div>
+      )}
+      <StickerTray />
     </div>
   );
 }
