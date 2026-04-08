@@ -8,6 +8,7 @@ export interface EncounterConfig {
   monsterId?: string;
   monsterMaxHp: number;
   monsterAttackDamage: number;
+  monsterThreatMax: number;
   heroMaxHp: number;
   heroStartHp?: number;
   heroStartArmor?: number;
@@ -18,6 +19,7 @@ const DEFAULT_ENCOUNTER: EncounterConfig = {
   monsterName: 'Dragon',
   monsterMaxHp: 120,
   monsterAttackDamage: 12,
+  monsterThreatMax: 60,
   heroMaxHp: 50,
 };
 
@@ -37,6 +39,8 @@ interface CombatState {
   monsterName: string;
   monsterId: string;
   monsterAttackDamage: number;
+  monsterThreat: number;
+  monsterThreatMax: number;
   isActive: boolean;
   combatResult: 'none' | 'victory' | 'defeat';
   lastEvent: CombatEvent | null;
@@ -50,6 +54,7 @@ interface CombatActions {
   startCombat: (config?: EncounterConfig) => void;
   dealDamageToMonster: (damage: number, label?: string) => void;
   dealDamageToHero: (damage: number) => void;
+  addThreat: (amount: number) => void;
   healMonster: (amount: number) => void;
   healHero: (amount: number, label?: string) => void;
   applyPoison: () => void;
@@ -74,6 +79,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
   monsterName: DEFAULT_ENCOUNTER.monsterName,
   monsterId: 'dragon',
   monsterAttackDamage: DEFAULT_ENCOUNTER.monsterAttackDamage,
+  monsterThreat: 0,
+  monsterThreatMax: DEFAULT_ENCOUNTER.monsterThreatMax,
   isActive: true,
   combatResult: 'none',
   lastEvent: null,
@@ -93,6 +100,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
       monsterName: config.monsterName,
       monsterId: config.monsterId ?? 'dragon',
       monsterAttackDamage: config.monsterAttackDamage,
+      monsterThreat: 0,
+      monsterThreatMax: config.monsterThreatMax,
       isActive: true,
       combatResult: 'none',
       lastEvent: null,
@@ -130,6 +139,25 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
       eventId: state.eventId + 1,
       combatResult: newHp <= 0 ? 'defeat' : 'none',
     });
+  },
+
+  addThreat: (amount: number) => {
+    const initial = get();
+    if (initial.combatResult !== 'none') return;
+    let next = Math.max(0, initial.monsterThreat + amount);
+    let iterations = 0;
+    while (iterations < 10) {
+      const state = get();
+      if (state.combatResult !== 'none') break;
+      if (next < state.monsterThreatMax) break;
+      next -= state.monsterThreatMax;
+      set({ monsterThreat: next });
+      state.dealDamageToHero(state.monsterAttackDamage);
+      iterations += 1;
+    }
+    if (get().combatResult === 'none') {
+      set({ monsterThreat: next });
+    }
   },
 
   healMonster: (amount: number) => {
@@ -211,6 +239,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
       heroDefense: s.heroDefense,
       monsterHp: s.monsterHp,
       monsterMaxHp: s.monsterMaxHp,
+      monsterThreat: s.monsterThreat,
+      monsterThreatMax: s.monsterThreatMax,
       empowerMultiplier: s.empowerMultiplier,
       empowered: s.empowered,
       poisonTurns: s.poisonTurns,
@@ -226,6 +256,8 @@ export const useCombatStore = create<CombatState & CombatActions>()((set, get) =
       heroDefense: snap.heroDefense,
       monsterHp: snap.monsterHp,
       monsterMaxHp: snap.monsterMaxHp,
+      monsterThreat: snap.monsterThreat,
+      monsterThreatMax: snap.monsterThreatMax,
       empowerMultiplier: snap.empowerMultiplier,
       empowered: snap.empowered,
       poisonTurns: snap.poisonTurns,

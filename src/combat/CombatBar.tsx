@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useCombatStore } from '../game/combatStore';
 import { useRunStore } from '../game/runStore';
 import { portraitPositions } from '../game/portraitPositions';
@@ -7,6 +8,22 @@ import HeroSprite from './HeroSprite';
 import MonsterSprite from './MonsterSprite';
 import DamageFlash from './DamageFlash';
 import './CombatBar.css';
+
+function ThreatBar({ current, max }: { current: number; max: number }) {
+  const ratio = Math.max(0, Math.min(1, max > 0 ? current / max : 0));
+  return (
+    <div className="threat-bar-container" title={`Threat ${current}/${max}`}>
+      <div className="threat-bar-track">
+        <motion.div
+          className="threat-bar-fill"
+          animate={{ width: `${ratio * 100}%` }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        />
+      </div>
+      <div className="threat-bar-text">{current}/{max}</div>
+    </div>
+  );
+}
 
 export default function CombatBar() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -36,6 +53,8 @@ export default function CombatBar() {
   const heroDefense = useCombatStore(s => s.heroDefense);
   const monsterHp = useCombatStore(s => s.monsterHp);
   const monsterMaxHp = useCombatStore(s => s.monsterMaxHp);
+  const monsterThreat = useCombatStore(s => s.monsterThreat);
+  const monsterThreatMax = useCombatStore(s => s.monsterThreatMax);
   const monsterName = useCombatStore(s => s.monsterName);
   const lastEvent = useCombatStore(s => s.lastEvent);
   const eventId = useCombatStore(s => s.eventId);
@@ -89,6 +108,7 @@ export default function CombatBar() {
           <div className="combatant-info">
             <div className="combatant-name">{monsterName}</div>
             <HealthBar current={monsterHp} max={monsterMaxHp} side="right" />
+            <ThreatBar current={monsterThreat} max={monsterThreatMax} />
           </div>
           <div ref={monsterRef}><MonsterSprite shake={isMonsterHit} poisoned={poisonTurns > 0} monsterId={monsterId} /></div>
         </div>

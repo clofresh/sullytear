@@ -25,6 +25,7 @@ export interface GameSnapshot {
 export interface CombatActionsSlice {
   dealDamageToMonster: (damage: number, label?: string) => void;
   dealDamageToHero: (damage: number) => void;
+  addThreat: (amount: number) => void;
   healMonster: (amount: number) => void;
   healHero: (amount: number, label?: string) => void;
   applyPoison: () => void;

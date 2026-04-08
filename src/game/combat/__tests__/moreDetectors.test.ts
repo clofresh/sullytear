@@ -16,6 +16,7 @@ function stubCombat(): CombatActionsSlice & { _calls: Record<string, unknown[][]
   return {
     dealDamageToMonster: track('dealDamageToMonster'),
     dealDamageToHero: track('dealDamageToHero'),
+    addThreat: track('addThreat'),
     healMonster: track('healMonster'),
     healHero: track('healHero'),
     applyPoison: track('applyPoison'),

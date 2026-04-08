@@ -54,8 +54,8 @@ describe('Combat Store', () => {
     });
   });
 
-  describe('Stock cycle deals monster attack damage', () => {
-    it('deals monsterAttackDamage to hero when stock cycles', () => {
+  describe('Stock cycle charges the threat meter', () => {
+    it('adds monsterAttackDamage * 2 to threat on cycle', () => {
       const initialHeroHp = useCombatStore.getState().heroMaxHp;
       const attackDmg = useCombatStore.getState().monsterAttackDamage;
 
@@ -65,18 +65,19 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw the one card (stock → waste) — 5 damage (rank)
+      // Draw the one card (threat += 5)
       useGameStore.getState().drawFromStock();
-      // Now stock is empty — draw again to trigger cycle — monster attack damage
+      // Stock empty → next draw triggers cycle (threat += attackDmg*2)
       useGameStore.getState().drawFromStock();
 
-      // Hero takes 5 (rank) + monsterAttackDamage (cycle)
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 5 - attackDmg);
+      // Default encounter has threatMax=60, so 5 + attackDmg*2 should be well under.
+      expect(useCombatStore.getState().monsterThreat).toBe(5 + attackDmg * 2);
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp);
     });
   });
 
-  describe('Stock draw damages hero', () => {
-    it('deals card rank damage per stock draw', () => {
+  describe('Stock draw charges the threat meter', () => {
+    it('adds card rank to threat per stock draw (no HP loss below threshold)', () => {
       const initialHeroHp = useCombatStore.getState().heroMaxHp;
 
       setupGameState({
@@ -85,11 +86,12 @@ describe('Combat Store', () => {
         stockCycleCount: 0,
       });
 
-      // Draw twice — first draws the top card (4), then (3) → 4 + 3 = 7 damage
+      // Draw twice — top is (4) then (3) → threat = 7
       useGameStore.getState().drawFromStock();
       useGameStore.getState().drawFromStock();
 
-      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp - 7);
+      expect(useCombatStore.getState().monsterThreat).toBe(7);
+      expect(useCombatStore.getState().heroHp).toBe(initialHeroHp);
     });
   });
 
@@ -1127,6 +1129,7 @@ describe('Combat Store', () => {
         monsterName: 'Slime',
         monsterMaxHp: 40,
         monsterAttackDamage: 4,
+        monsterThreatMax: 20,
         heroMaxHp: 50,
         heroStartHp: 30,
       });
@@ -1140,6 +1143,7 @@ describe('Combat Store', () => {
         monsterName: 'Slime',
         monsterMaxHp: 40,
         monsterAttackDamage: 4,
+        monsterThreatMax: 20,
         heroMaxHp: 50,
       });
       expect(useCombatStore.getState().heroHp).toBe(50);
@@ -1151,6 +1155,7 @@ describe('Combat Store', () => {
         monsterId: 'slime',
         monsterMaxHp: 40,
         monsterAttackDamage: 4,
+        monsterThreatMax: 20,
         heroMaxHp: 50,
       });
       expect(useCombatStore.getState().monsterId).toBe('slime');
@@ -1161,6 +1166,7 @@ describe('Combat Store', () => {
         monsterName: 'Slime',
         monsterMaxHp: 40,
         monsterAttackDamage: 4,
+        monsterThreatMax: 20,
         heroMaxHp: 50,
         heroStartArmor: 10,
         heroStartDefense: 15,
@@ -1175,6 +1181,7 @@ describe('Combat Store', () => {
         monsterName: 'Slime',
         monsterMaxHp: 40,
         monsterAttackDamage: 4,
+        monsterThreatMax: 20,
         heroMaxHp: 50,
       });
       const s = useCombatStore.getState();
@@ -1182,11 +1189,86 @@ describe('Combat Store', () => {
       expect(s.heroDefense).toBe(0);
     });
 
+    it('addThreat stores below threshold without attacking', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        monsterThreatMax: 20,
+        heroMaxHp: 50,
+      });
+      useCombatStore.getState().addThreat(10);
+      const s = useCombatStore.getState();
+      expect(s.monsterThreat).toBe(10);
+      expect(s.heroHp).toBe(50);
+    });
+
+    it('addThreat fires attack at threshold and carries overflow', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        monsterThreatMax: 20,
+        heroMaxHp: 50,
+      });
+      useCombatStore.getState().addThreat(25);
+      const s = useCombatStore.getState();
+      expect(s.monsterThreat).toBe(5);
+      expect(s.heroHp).toBe(46);
+    });
+
+    it('addThreat can fire multiple attacks on huge input', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        monsterThreatMax: 20,
+        heroMaxHp: 50,
+      });
+      useCombatStore.getState().addThreat(45);
+      const s = useCombatStore.getState();
+      expect(s.monsterThreat).toBe(5);
+      expect(s.heroHp).toBe(42);
+    });
+
+    it('addThreat with negative amount clamps at 0 and does not attack', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 4,
+        monsterThreatMax: 20,
+        heroMaxHp: 50,
+      });
+      useCombatStore.getState().addThreat(10);
+      useCombatStore.getState().addThreat(-25);
+      const s = useCombatStore.getState();
+      expect(s.monsterThreat).toBe(0);
+      expect(s.heroHp).toBe(50);
+    });
+
+    it('addThreat applies defense/armor to the fired attack', () => {
+      useCombatStore.getState().startCombat({
+        monsterName: 'Slime',
+        monsterMaxHp: 40,
+        monsterAttackDamage: 10,
+        monsterThreatMax: 20,
+        heroMaxHp: 50,
+        heroStartArmor: 5,
+        heroStartDefense: 50,
+      });
+      useCombatStore.getState().addThreat(20);
+      const s = useCombatStore.getState();
+      // 10 dmg * (1 - 0.5) = 5 reduced. Armor absorbs all 5. Hero HP untouched.
+      expect(s.heroHp).toBe(50);
+      expect(s.heroArmor).toBe(0);
+    });
+
     it('startCombat without monsterId defaults to dragon', () => {
       useCombatStore.getState().startCombat({
         monsterName: 'Dragon',
         monsterMaxHp: 120,
         monsterAttackDamage: 12,
+        monsterThreatMax: 60,
         heroMaxHp: 50,
       });
       expect(useCombatStore.getState().monsterId).toBe('dragon');

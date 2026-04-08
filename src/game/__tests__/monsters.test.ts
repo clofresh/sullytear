@@ -61,17 +61,9 @@ describe('buildEncounterConfig', () => {
     expect(config.heroStartHp).toBeUndefined();
   });
 
-  it('passes per-difficulty starting armor and defense', () => {
+  it('does not seed starting armor or defense from difficulty', () => {
     const normal = buildEncounterConfig(slime, 'normal');
-    expect(normal.heroStartArmor).toBe(10);
-    expect(normal.heroStartDefense).toBe(15);
-
-    const hard = buildEncounterConfig(slime, 'hard');
-    expect(hard.heroStartArmor).toBe(5);
-    expect(hard.heroStartDefense).toBe(5);
-
-    const nightmare = buildEncounterConfig(slime, 'nightmare');
-    expect(nightmare.heroStartArmor).toBe(0);
-    expect(nightmare.heroStartDefense).toBe(0);
+    expect(normal.heroStartArmor).toBeUndefined();
+    expect(normal.heroStartDefense).toBeUndefined();
   });
 });
