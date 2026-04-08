@@ -36,7 +36,7 @@ export const STICKER_REGISTRY: Record<StickerDefId, StickerDef> = {
     id: 'vampire',
     name: 'Vampire',
     tag: 'VAMP',
-    description: '10% of damage dealt heals the hero (min 1).',
+    description: '10% of foundation damage heals the hero (min 1).',
     validTargetKinds: ['hero'],
   },
   frostbitten: {
