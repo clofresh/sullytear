@@ -53,6 +53,32 @@ Adding a new combat trigger means writing a detector and registering it in `src/
 
 Each monster has a `threatMax`. Threat accumulates primarily from stock cycles; when it overflows, the monster strikes the hero for its attack damage and the meter resets. Threat values are tuned so that a player who leans on stock cycling takes roughly one hit per cycle-through of the deck.
 
+## Stickers
+
+Between encounters the hero earns **stickers** — small persistent modifiers that attach to specific cards, suits, or monsters. The loop:
+
+1. A monster dies → a reward screen offers a **3-sticker draft** (weighted by encounter tier; no skip in v1).
+2. The player picks one, then enters a **placement step** over the face-down preview of the next deal — pick a target card, suit, or the next monster depending on the sticker's scope.
+3. Placement commits the encounter and the next board deals with the sticker attached.
+
+Stickers fire through the same detector pipeline as the rest of combat, so their effects (and undo) stay consistent with existing rules. Charge-based effects reuse the existing `empowerMultiplier` pathway.
+
+**v1 starter pool** (six stickers):
+
+- ⚔ **Sharpened** (card) — +3 damage when this card is foundationed.
+- 🔥 **Forge** (suit) — +2 damage to every foundation of this suit.
+- 💥 **Volatile** (card) — when revealed from the tableau, deals `rank` damage immediately.
+- ⚡ **Surge** (run) — the next foundation placement deals double (one-shot charge).
+- 🧊 **Frostbitten** (next monster) — reduces the next monster's `threatMax` by 4, consumed on apply.
+
+Full design rationale and the full starter pool live in [plans/2026-04-08-stickers-design.md](./plans/2026-04-08-stickers-design.md); the implementation breakdown lives in [plans/2026-04-08-stickers.md](./plans/2026-04-08-stickers.md).
+
+**v1 limitations:**
+
+- Foundation-undo does not reverse sticker damage bonuses.
+- Frostbitten is consumed on apply and is not rescoped to the `current` encounter if the player rewinds.
+- Pile-sticker and placement UIs use a simplified HUD badge row and a standalone preview rather than inline-per-pile rendering — a future polish pass.
+
 ## Hero
 
 Hero maxHp defaults to 50. Damage sources: monster threat strikes. Heal sources: foundation Aces/Queens, revealing Aces/Queens, moving Aces/Queens into play, column clears. There is no armor or starting defense (removed in `7507b9a`).

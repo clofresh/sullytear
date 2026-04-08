@@ -36,6 +36,18 @@ Solitaire moves never call combat code directly. They mutate `gameStore`; a subs
 - **Touching Vite, PWA, or build scripts?** → [build.md](./build.md).
 - **Setting up or shipping a PR?** → [contributing.md](./contributing.md).
 
+## Stickers
+
+Stickers are persistent between-encounter modifiers that layer onto the existing detector pipeline without bypassing it.
+
+- **Registry** — `src/game/stickers/registry.ts` defines each sticker (id, scope, glyph, hooks). The v1 pool is a flat table so new stickers can be added by registering an entry and implementing its hook(s).
+- **Run state** — stickers live in a slice of `runStore` keyed by scope (card instance, suit, run-wide charges, next-monster). Query helpers surface the subset relevant to a given detector call.
+- **Detector hooks** — `DetectorContext` exposes `ctx.stickers.*` hooks. Detectors call into them to ask for damage bonuses or side effects: `foundationDetector` consults Sharpened and Forge, `revealDetector` fires Volatile, and Surge consumes a run-wide charge via the existing `empowerMultiplier` pathway (no parallel multiplier stack).
+- **Encounter boundaries** — Frostbitten is applied and consumed at `commitEncounter` when the next monster is instantiated. Mid-run transitions now route through `beginReward` → `commitEncounter`; `advanceEncounter` is reserved for the final victory transition.
+- **UI** — the reward screen (3-sticker draft) and placement step run between encounters; the in-combat HUD renders sticker pips on face-up cards and a badge row for run-wide charges. Inline-per-pile rendering is deferred (see limitations in [game-design.md](./game-design.md)).
+
+Design rationale: [plans/2026-04-08-stickers-design.md](./plans/2026-04-08-stickers-design.md). Implementation plan: [plans/2026-04-08-stickers.md](./plans/2026-04-08-stickers.md).
+
 ## Non-negotiables
 
 - **No direct combat calls from move handlers.** Write a detector.
