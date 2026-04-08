@@ -25,7 +25,9 @@ export function rollStickerOffer(seed: number, tier: number): StickerDefId[] {
   // Fold tier into the seed so different tiers yield different draws for
   // the same base seed.
   const rng = mulberry32((seed ^ (tier * 0x9e3779b1)) >>> 0);
-  const pool = (Object.keys(STICKER_REGISTRY) as StickerDefId[]).slice();
+  // Sort keys explicitly so determinism does not depend on bundler/runtime
+  // property insertion order.
+  const pool = (Object.keys(STICKER_REGISTRY) as StickerDefId[]).slice().sort();
   // Fisher–Yates partial shuffle; take first 3.
   const n = pool.length;
   const picks = Math.min(3, n);
