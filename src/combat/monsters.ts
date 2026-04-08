@@ -35,7 +35,5 @@ export function buildEncounterConfig(
     monsterThreatMax: monster.threatMax,
     heroMaxHp,
     heroStartHp,
-    heroStartArmor: cfg.startArmor,
-    heroStartDefense: cfg.startDefense,
   };
 }
