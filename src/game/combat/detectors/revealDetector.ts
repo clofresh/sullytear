@@ -28,6 +28,7 @@ export function detectReveals(
 
       for (const card of tableau[i]) {
         if (!card.faceUp || !prevFaceDownIds.has(card.id)) continue;
+        ctx.stickers.onReveal(card);
         if (card.rank === 1)  { ctx.combat.healHero(1);              ctx.combat.emitFaceCardEvent('Ace Stirs...'); }
         if (card.rank === 11) { ctx.combat.setPoisonTurns(1);        ctx.combat.emitFaceCardEvent('Jack Stirs...'); }
         if (card.rank === 12) { ctx.combat.healHero(2);              ctx.combat.emitFaceCardEvent('Queen Stirs...'); }
