@@ -98,12 +98,6 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     const heroMaxHp = 50;
     const config = buildEncounterConfig(encounters[0], difficulty, heroMaxHp);
 
-    // Symmetric with advanceEncounter: apply any next-scope monster
-    // stickers to the first encounter. In practice this is a no-op
-    // because startRun also resets stickers to [], but the call path
-    // is kept identical for consistency with advanceEncounter.
-    applyNextMonsterStickers(config, get().stickers);
-
     set({
       isRunActive: true,
       difficulty,
