@@ -9,6 +9,28 @@ import {
   getHeroHp,
 } from './orchestrator';
 import type { Sticker } from './stickers/types';
+import type { EncounterConfig } from './combatStore';
+
+/**
+ * Apply next-scope monster stickers to a freshly-built EncounterConfig.
+ * Mutates `config` in place, returns the ids of stickers that were consumed
+ * so the caller can remove them from the run. v1: Frostbitten reduces
+ * monsterThreatMax by 4.
+ */
+function applyNextMonsterStickers(
+  config: EncounterConfig,
+  stickers: Sticker[],
+): string[] {
+  const consumed: string[] = [];
+  for (const s of stickers) {
+    if (s.target.kind !== 'monster' || s.target.scope !== 'next') continue;
+    if (s.defId === 'frostbitten') {
+      config.monsterThreatMax = Math.max(0, config.monsterThreatMax - 4);
+      consumed.push(s.id);
+    }
+  }
+  return consumed;
+}
 
 interface RunState {
   isRunActive: boolean;
@@ -59,6 +81,12 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     const heroMaxHp = 50;
     const config = buildEncounterConfig(encounters[0], difficulty, heroMaxHp);
 
+    // Symmetric with advanceEncounter: apply any next-scope monster
+    // stickers to the first encounter. In practice this is a no-op
+    // because startRun also resets stickers to [], but the call path
+    // is kept identical for consistency with advanceEncounter.
+    applyNextMonsterStickers(config, get().stickers);
+
     set({
       isRunActive: true,
       difficulty,
@@ -103,10 +131,18 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     const carriedHp = Math.min(heroHp + 10, heroMaxHp);
     const config = buildEncounterConfig(encounters[nextIndex], difficulty, heroMaxHp, carriedHp);
 
+    // Apply next-scope monster stickers (e.g. Frostbitten) and remove
+    // them — they are single-use and target the "next" encounter.
+    const consumed = applyNextMonsterStickers(config, state.stickers);
+    const remaining = consumed.length > 0
+      ? state.stickers.filter((s) => !consumed.includes(s.id))
+      : state.stickers;
+
     set({
       currentEncounterIndex: nextIndex,
       goldEarned: newGoldEarned,
       lastGoldAwarded: gold,
+      stickers: remaining,
     });
 
     startEncounter(config);
