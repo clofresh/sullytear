@@ -58,6 +58,12 @@ export interface DetectorContext {
   setHeroHp: (hp: number) => void;
   /** Tracks face cards that have already triggered tier-2 effects. */
   playTriggeredCards: Set<string>;
+  /**
+   * Cumulative reveal counter for the current encounter. Each time it
+   * crosses a multiple of 3, the reveal detector grants a +2 armor bonus
+   * ("Diligent Play"). Decrements symmetrically on un-reveal for undo.
+   */
+  revealStreak: { value: number };
 }
 
 export interface GameStateLike {

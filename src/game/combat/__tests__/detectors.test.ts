@@ -44,6 +44,7 @@ function makeCtx(overrides: Partial<{ empowerMultiplier: number; poisonTurns: nu
     }),
     setHeroHp,
     playTriggeredCards: new Set<string>(),
+    revealStreak: { value: 0 },
   };
   return { ctx, combat, setHeroHp };
 }
@@ -96,6 +97,18 @@ describe('columnClearDetector', () => {
     const { ctx, combat } = makeCtx();
     detectColumnClears([false, false, false, false, false, false, false], [true, false, false, false, false, false, false], ctx);
     expect(combat._calls.healHero?.[0]).toEqual([5, 'Column Clear!']);
+  });
+
+  it('grants +3 armor on clear', () => {
+    const { ctx, combat } = makeCtx();
+    detectColumnClears([false, false, false, false, false, false, false], [true, false, false, false, false, false, false], ctx);
+    expect(combat._calls.grantArmor?.[0]).toEqual([3, 'Column Clear!']);
+  });
+
+  it('grants armor once per column cleared in a single pass', () => {
+    const { ctx, combat } = makeCtx();
+    detectColumnClears([false, false, false, false, false, false, false], [true, true, false, false, false, false, false], ctx);
+    expect(combat._calls.grantArmor).toHaveLength(2);
   });
 
   it('subtracts 5 hero hp on un-clear', () => {

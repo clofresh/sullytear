@@ -244,7 +244,8 @@ describe('Combat Store', () => {
         to: 'foundation-0',
       });
 
-      expect(useCombatStore.getState().heroArmor).toBe(armorBefore + 10);
+      // +10 King Awakens, +3 from column clear (source column emptied)
+      expect(useCombatStore.getState().heroArmor).toBe(armorBefore + 10 + 3);
       expect(useCombatStore.getState().heroDefense).toBe(defenseBefore + 10);
     });
   });
@@ -735,7 +736,8 @@ describe('Combat Store', () => {
         to: 'tableau-1',
       });
 
-      expect(useCombatStore.getState().heroArmor).toBe(6);
+      // +6 King Rises, +3 from column clear (source column emptied)
+      expect(useCombatStore.getState().heroArmor).toBe(6 + 3);
     });
 
     it('moving an Ace waste-to-tableau heals hero 2 HP', () => {
@@ -946,7 +948,7 @@ describe('Combat Store', () => {
   });
 
   describe('Escalating face card effects across tiers', () => {
-    it('King: armor accumulates +3 → +9 → +19 (and +10% def) across reveal, play, foundation', () => {
+    it('King: armor accumulates across reveal, play (+column clear), foundation (+column clear)', () => {
       // Column 0: face-down King under a face-up 5♠. Column 1: 6♥. Column 2: empty.
       setupGameState({
         tableau: [
@@ -974,7 +976,8 @@ describe('Combat Store', () => {
         fromIndex: 0,
         to: 'tableau-2',
       });
-      expect(useCombatStore.getState().heroArmor).toBe(9);
+      // 3 (Stirs) + 6 (Rises) + 3 (column clear) = 12
+      expect(useCombatStore.getState().heroArmor).toBe(12);
 
       // Step 3: Build foundation to accept King, then place it
       const foundationPile: Card[] = [];
@@ -997,7 +1000,8 @@ describe('Combat Store', () => {
         fromIndex: 0,
         to: 'foundation-0',
       });
-      expect(useCombatStore.getState().heroArmor).toBe(19);
+      // prior 12 + 10 (Awakens) + 3 (column clear of tab[2]) = 25
+      expect(useCombatStore.getState().heroArmor).toBe(25);
       expect(useCombatStore.getState().heroDefense).toBe(10);
     });
 

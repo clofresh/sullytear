@@ -28,7 +28,11 @@ function stubCombat(): CombatActionsSlice & { _calls: Record<string, unknown[][]
   } as ReturnType<typeof stubCombat>;
 }
 
-function makeCtx(overrides: Partial<{ heroHp: number }> = {}, triggered = new Set<string>()) {
+function makeCtx(
+  overrides: Partial<{ heroHp: number }> = {},
+  triggered = new Set<string>(),
+  revealStreak: { value: number } = { value: 0 },
+) {
   const combat = stubCombat();
   const setHeroHp = vi.fn();
   const ctx: DetectorContext = {
@@ -42,8 +46,9 @@ function makeCtx(overrides: Partial<{ heroHp: number }> = {}, triggered = new Se
     }),
     setHeroHp,
     playTriggeredCards: triggered,
+    revealStreak,
   };
-  return { ctx, combat, setHeroHp };
+  return { ctx, combat, setHeroHp, revealStreak };
 }
 
 function emptyTab(): Card[][] {
@@ -205,5 +210,65 @@ describe('revealDetector', () => {
     const { ctx, setHeroHp } = makeCtx({ heroHp: 30 });
     detectReveals(prevCounts, prevIds, tab, ctx);
     expect(setHeroHp).toHaveBeenCalledWith(29);
+  });
+
+  describe('Diligent Play streak', () => {
+    it('grants +2 armor when streak crosses 3 cumulative reveals', () => {
+      const streak = { value: 2 };
+      const tab = emptyTab();
+      tab[0] = [makeCard('hearts', 5)];
+      const { ctx, combat } = makeCtx({}, new Set(), streak);
+      detectReveals([1, 0, 0, 0, 0, 0, 0], new Set(['hearts-5']), tab, ctx);
+      expect(combat._calls.grantArmor?.[0]).toEqual([2, 'Diligent Play!']);
+      expect(streak.value).toBe(3);
+    });
+
+    it('does not grant armor until a threshold is crossed', () => {
+      const streak = { value: 0 };
+      const tab = emptyTab();
+      tab[0] = [makeCard('hearts', 5)];
+      const { ctx, combat } = makeCtx({}, new Set(), streak);
+      detectReveals([1, 0, 0, 0, 0, 0, 0], new Set(['hearts-5']), tab, ctx);
+      expect(combat._calls.grantArmor).toBeUndefined();
+      expect(streak.value).toBe(1);
+    });
+
+    it('grants multiple bonuses when a single move crosses multiple thresholds', () => {
+      // Reveal 6 cards at once (unrealistic but covers the math) starting from 0.
+      const streak = { value: 0 };
+      const tab = emptyTab();
+      // 6 face-up cards across columns; prev had 6 face-down.
+      tab[0] = [makeCard('hearts', 2), makeCard('hearts', 3), makeCard('hearts', 4)];
+      tab[1] = [makeCard('spades', 2), makeCard('spades', 3), makeCard('spades', 4)];
+      const prevCounts = [3, 3, 0, 0, 0, 0, 0];
+      const prevIds = new Set<string>([
+        'hearts-2', 'hearts-3', 'hearts-4',
+        'spades-2', 'spades-3', 'spades-4',
+      ]);
+      const { ctx, combat } = makeCtx({}, new Set(), streak);
+      detectReveals(prevCounts, prevIds, tab, ctx);
+      // 6 reveals → crosses thresholds at 3 and 6 → 2 × +2 = +4 armor in one grant
+      expect(combat._calls.grantArmor?.[0]).toEqual([4, 'Diligent Play!']);
+      expect(streak.value).toBe(6);
+    });
+
+    it('decrements streak on un-reveal without granting armor', () => {
+      const streak = { value: 3 };
+      const tab = emptyTab();
+      tab[0] = [makeCard('hearts', 5, false)]; // face-down
+      const { ctx, combat } = makeCtx({}, new Set(), streak);
+      detectReveals([0, 0, 0, 0, 0, 0, 0], new Set(), tab, ctx);
+      expect(combat._calls.grantArmor).toBeUndefined();
+      expect(streak.value).toBe(2);
+    });
+
+    it('streak floors at 0 on excess un-reveals', () => {
+      const streak = { value: 1 };
+      const tab = emptyTab();
+      tab[0] = [makeCard('hearts', 5, false), makeCard('spades', 5, false)];
+      const { ctx } = makeCtx({}, new Set(), streak);
+      detectReveals([0, 0, 0, 0, 0, 0, 0], new Set(), tab, ctx);
+      expect(streak.value).toBe(0);
+    });
   });
 });

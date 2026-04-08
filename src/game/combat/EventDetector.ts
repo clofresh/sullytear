@@ -32,6 +32,7 @@ export interface EventDetectorDeps {
 export class EventDetector {
   private prev: GameSnapshot;
   private playTriggeredCards = new Set<string>();
+  private revealStreak = { value: 0 };
   private suppressed = false;
   private readonly deps: EventDetectorDeps;
 
@@ -43,6 +44,7 @@ export class EventDetector {
   init(state: GameStateLike): void {
     this.prev = snapshotGame(state);
     this.playTriggeredCards = new Set<string>();
+    this.revealStreak = { value: 0 };
   }
 
   hasPlayTriggered(cardId: string): boolean {
@@ -71,6 +73,7 @@ export class EventDetector {
       combatState: this.deps.combatState,
       setHeroHp: this.deps.setHeroHp,
       playTriggeredCards: this.playTriggeredCards,
+      revealStreak: this.revealStreak,
     };
 
     const { foundationGrew } = detectFoundationChanges(this.prev.foundationLengths, state.foundations, ctx);
