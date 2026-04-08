@@ -82,7 +82,7 @@ export default function Waste({ cardWidth, cardHeight, onDragStart, onDragEnd }:
             onDoubleClick={handleDoubleClick}
             draggable
             onDragStart={() => { setIsDragging(true); onDragStart?.('waste', waste.length - 1); }}
-            onDragEnd={(info) => { setIsDragging(false); onDragEnd?.({ x: info.event.clientX, y: info.event.clientY }); }}
+            onDragEnd={(point) => { setIsDragging(false); onDragEnd?.(point); }}
           />
         </motion.div>
       </AnimatePresence>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type PanInfo } from 'framer-motion';
 import { Card as CardType, getColor, getRankLabel } from '../game/types';
 import { SUIT_SYMBOLS } from '../utils/constants';
 import { PIP_LAYOUTS } from '../utils/pipLayouts';
@@ -15,9 +15,21 @@ interface CardProps {
   onDoubleClick?: () => void;
   draggable?: boolean;
   onDragStart?: () => void;
-  onDrag?: (event: PointerEvent, info: { offset: { x: number; y: number } }) => void;
-  onDragEnd?: (info: { point: { x: number; y: number }; event: PointerEvent }) => void;
+  /** Receives the cumulative pointer offset since drag start. */
+  onDrag?: (info: { offset: { x: number; y: number } }) => void;
+  /** Receives the final pointer position in viewport (clientX/Y) coordinates. */
+  onDragEnd?: (point: { x: number; y: number }) => void;
   zIndex?: number;
+}
+
+// framer-motion's `info.point` uses `pageX`/`pageY` (document coordinates),
+// but we need viewport (`clientX`/`clientY`) coordinates so callers can feed
+// the result into `document.elementsFromPoint`.
+function viewportPoint(info: PanInfo): { x: number; y: number } {
+  return {
+    x: info.point.x - window.scrollX,
+    y: info.point.y - window.scrollY,
+  };
 }
 
 export default function Card({
@@ -58,8 +70,8 @@ export default function Card({
       dragMomentum={false}
       dragTransition={{ bounceStiffness: 400, bounceDamping: 28 }}
       onDragStart={() => { setIsDragging(true); onDragStart?.(); }}
-      onDrag={(e, info) => onDrag?.(e as unknown as PointerEvent, { offset: info.offset })}
-      onDragEnd={(e, info) => { setIsDragging(false); onDragEnd?.({ point: info.point, event: e as unknown as PointerEvent }); }}
+      onDrag={(_event, info) => onDrag?.({ offset: info.offset })}
+      onDragEnd={(_event, info) => { setIsDragging(false); onDragEnd?.(viewportPoint(info)); }}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
     >
       <div className="card-inner">

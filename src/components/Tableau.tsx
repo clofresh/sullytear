@@ -81,7 +81,7 @@ export default function Tableau({
   );
 
   const handleDrag = useCallback(
-    (_event: PointerEvent, info: { offset: { x: number; y: number } }) => {
+    (info: { offset: { x: number; y: number } }) => {
       if (dragIdxRef.current === null) return;
       const container = containerRef.current;
       if (!container) return;
@@ -98,7 +98,7 @@ export default function Tableau({
   );
 
   const handleLocalDragEnd = useCallback(
-    (info: { event: PointerEvent }) => {
+    (point: { x: number; y: number }) => {
       const container = containerRef.current;
       if (container && dragIdxRef.current !== null) {
         container.querySelectorAll<HTMLElement>('[data-card-index]').forEach(el => {
@@ -120,7 +120,7 @@ export default function Tableau({
       }
       dragIdxRef.current = null;
       setIsDragSource(false);
-      onDragEnd?.({ x: info.event.clientX, y: info.event.clientY });
+      onDragEnd?.(point);
     },
     [onDragEnd],
   );

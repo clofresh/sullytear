@@ -15,8 +15,8 @@ interface TableauVisualProps {
   isValidTarget: boolean;
   onCardDoubleClick: (cardIndex: number) => void;
   onCardDragStart: (cardIndex: number) => void;
-  onCardDrag?: (event: PointerEvent, info: { offset: { x: number; y: number } }) => void;
-  onCardDragEnd: (info: { event: PointerEvent }) => void;
+  onCardDrag?: (info: { offset: { x: number; y: number } }) => void;
+  onCardDragEnd: (point: { x: number; y: number }) => void;
 }
 
 /**

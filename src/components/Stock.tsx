@@ -52,7 +52,7 @@ export default function Stock({ cardWidth, cardHeight, onDragStart, onDragEnd }:
           height={cardHeight}
           draggable
           onDragStart={() => onDragStart?.('stock', stock.length - 1)}
-          onDragEnd={(info) => onDragEnd?.({ x: info.event.clientX, y: info.event.clientY })}
+          onDragEnd={(point) => onDragEnd?.(point)}
         />
       </div>
     </div>
