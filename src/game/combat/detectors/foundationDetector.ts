@@ -33,6 +33,7 @@ export function detectFoundationChanges(
         ctx.combat.setEmpowerMultiplier(1.0);
       }
       const stickerBonus = ctx.stickers.foundationDamageBonus(topCard, foundationId(i));
+      // Flat sticker bonuses (Sharpened, Forge) are added AFTER the empower multiply — they remain flat and do not scale with Surge.
       damage += stickerBonus;
       ctx.combat.dealDamageToMonster(damage);
       const vampHeal = ctx.stickers.onDamageDealt(damage);
