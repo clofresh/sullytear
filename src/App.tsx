@@ -5,7 +5,6 @@ import WinScreen from './components/WinScreen';
 import CombatBar from './combat/CombatBar';
 import RoyalAwakeningBanner from './combat/RoyalAwakeningBanner';
 import CombatOverlay from './combat/CombatOverlay';
-import CombatArena from './combat/arena/CombatArena';
 import DragTrail from './components/DragTrail';
 import RunStartScreen from './components/RunStartScreen';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -15,6 +14,10 @@ import DebugPage from './combat/arena/DebugPage';
 import './App.css';
 
 const AnimatedBackground = lazy(() => import('./background/AnimatedBackground'));
+// CombatArena pulls in three.js, GLTF loaders, and skinned-mesh code.
+// Splitting it lets the solitaire board render and become interactive
+// before the 3D chunk finishes streaming, especially on first visit.
+const CombatArena = lazy(() => import('./combat/arena/CombatArena'));
 
 export default function App() {
   const isRunActive = useRunStore(s => s.isRunActive);
@@ -40,7 +43,14 @@ export default function App() {
           <Header />
           <CombatBar />
           <RoyalAwakeningBanner />
-          <CombatArena />
+          {/* Arena is non-essential — same rationale as the background:
+              if the chunk fails to load or a shader fails to compile,
+              fall back to no 3D rather than crashing the app. */}
+          <ErrorBoundary>
+            <Suspense fallback={null}>
+              <CombatArena />
+            </Suspense>
+          </ErrorBoundary>
           <GameBoard />
           <WinScreen />
           <CombatOverlay />
