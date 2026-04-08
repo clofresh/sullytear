@@ -1,0 +1,214 @@
+# art/skeleton.model.toml
+#
+# Port of src/combat/arena/models/SkeletonModel.tsx.
+# 
+# Contract: feet at y=0, height in [0.3, 4.0], animations named
+# idle/attack/hit/death exactly. See art/README.md.
+
+name = "skeleton"
+description = """
+Rattling bones and a rusted sword. Relentless and cold.
+"""
+
+# -- Skeleton ----------------------------------------------------------------
+[[bones]]
+name = "root"
+head = [0.0, 0.0, 0.0]
+
+# -- Geometry ----------------------------------------------------------------
+# Skull: sphere radius 0.25, pos [0, 1.35, 0]
+[[parts]]
+shape  = "sphere"
+radius = 0.25
+pos    = [0.0, 1.35, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Eyes: sphere radius 0.06, pos [+/-0.08, 1.4, 0.2]
+[[parts]]
+shape  = "sphere"
+radius = 0.06
+pos    = [-0.08, 1.4, 0.2]
+color  = "#ff3333"
+bone   = "root"
+
+[[parts]]
+shape  = "sphere"
+radius = 0.06
+pos    = [0.08, 1.4, 0.2]
+color  = "#ff3333"
+bone   = "root"
+
+# Jaw: box [0.18, 0.06, 0.15], pos [0, 1.23, 0.08]
+[[parts]]
+shape  = "box"
+size   = [0.18, 0.06, 0.15]
+pos    = [0.0, 1.23, 0.08]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Spine: cylinder radius 0.04, height 0.6, pos [0, 0.9, 0]
+[[parts]]
+shape  = "cylinder"
+radius = 0.04
+height = 0.6
+pos    = [0.0, 0.9, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Ribcage: torus radius 0.15, thickness 0.02, pos [0, 0.9 + offset, 0]
+[[parts]]
+shape  = "torus"
+radius = 0.15
+thickness = 0.02
+pos    = [0.0, 0.78, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+[[parts]]
+shape  = "torus"
+radius = 0.15
+thickness = 0.02
+pos    = [0.0, 0.9, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+[[parts]]
+shape  = "torus"
+radius = 0.15
+thickness = 0.02
+pos    = [0.0, 1.02, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Left arm: cylinder radius 0.025, height 0.5, pos [-0.25, 0.85, 0], rot [0, 0, -0.5]
+[[parts]]
+shape  = "cylinder"
+radius = 0.025
+height = 0.5
+pos    = [-0.25, 0.85, 0.0]
+rot    = [0.0, 0.0, -0.5]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Right arm: cylinder radius 0.025, height 0.5, pos [0.25, 0.85, 0], rot [0, 0, 0.5]
+[[parts]]
+shape  = "cylinder"
+radius = 0.025
+height = 0.5
+pos    = [0.25, 0.85, 0.0]
+rot    = [0.0, 0.0, 0.5]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Sword blade: box [0.04, 0.6, 0.02], pos [0.45, 1.2, 0]
+[[parts]]
+shape  = "box"
+size   = [0.04, 0.6, 0.02]
+pos    = [0.45, 1.2, 0.0]
+color  = "#aaaaaa"
+bone   = "root"
+
+# Sword hilt: box [0.15, 0.04, 0.03], pos [0.45, 0.6, 0]
+[[parts]]
+shape  = "box"
+size   = [0.15, 0.04, 0.03]
+pos    = [0.45, 0.6, 0.0]
+color  = "#8B6914"
+bone   = "root"
+
+# Pelvis: box [0.25, 0.1, 0.12], pos [0, 0.55, 0]
+[[parts]]
+shape  = "box"
+size   = [0.25, 0.1, 0.12]
+pos    = [0.0, 0.55, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+# Legs: cylinder radius 0.03, height 0.5, pos [+/-0.08, 0.25, 0]
+[[parts]]
+shape  = "cylinder"
+radius = 0.03
+height = 0.5
+pos    = [-0.08, 0.25, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+[[parts]]
+shape  = "cylinder"
+radius = 0.03
+height = 0.5
+pos    = [0.08, 0.25, 0.0]
+color  = "#e8e0d0"
+bone   = "root"
+
+# -- Animations --------------------------------------------------------------
+[animations.idle]
+loop = true
+duration = 2.0
+[[animations.idle.tracks]]
+bone = "root"
+path = "scale"
+times  = [0.0, 0.5, 1.0, 1.5, 2.0]
+values = [
+  [1.00, 1.00, 1.00],
+  [1.01, 0.99, 1.01],
+  [1.00, 1.00, 1.00],
+  [0.99, 1.01, 0.99],
+  [1.00, 1.00, 1.00],
+]
+
+[[animations.idle.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.5, 1.0, 1.5, 2.0]
+values = [
+  [0.0, 0.00, 0.0],
+  [0.0, 0.02, 0.0],
+  [0.0, 0.00, 0.0],
+  [0.0, 0.02, 0.0],
+  [0.0, 0.00, 0.0],
+]
+
+[animations.attack]
+loop = false
+duration = 0.6
+[[animations.attack.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.15, 0.3, 0.6]
+values = [
+  [0.0, 0.0, 0.0],
+  [0.0, 0.1, -0.1],
+  [0.0, 0.0, 0.4],
+  [0.0, 0.0, 0.0],
+]
+
+[animations.hit]
+loop = false
+duration = 0.3
+[[animations.hit.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.06, 0.12, 0.18, 0.24, 0.3]
+values = [
+  [0.0, 0.0, 0.0],
+  [0.05, 0.0, 0.0],
+  [-0.05, 0.0, 0.0],
+  [0.05, 0.0, 0.0],
+  [-0.05, 0.0, 0.0],
+  [0.0, 0.0, 0.0],
+]
+
+[animations.death]
+loop = false
+duration = 1.2
+[[animations.death.tracks]]
+bone = "root"
+path = "scale"
+times  = [0.0, 0.3, 1.2]
+values = [
+  [1.0, 1.0, 1.0],
+  [1.2, 0.8, 1.2],
+  [1.5, 0.2, 1.5],
+]

@@ -11,7 +11,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
 
-const ARENA_FLOOR_OFFSET = -1.0;
+const ARENA_FLOOR_OFFSET = 0;
 
 export const MODEL_MAP: Record<string, React.ComponentType> = {
   slime: SlimeModel,
@@ -37,7 +37,12 @@ interface GltfEntry {
   offsetY?: number;
 }
 const GLTF_MODEL_MAP: Record<string, GltfEntry> = {
-  slime: { url: `${import.meta.env.BASE_URL}models/slime.glb`, offsetY: -1.0 },
+  slime: { url: `${import.meta.env.BASE_URL}models/slime.glb` },
+  goblin: { url: `${import.meta.env.BASE_URL}models/goblin.glb` },
+  skeleton: { url: `${import.meta.env.BASE_URL}models/skeleton.glb` },
+  werewolf: { url: `${import.meta.env.BASE_URL}models/werewolf.glb` },
+  lich: { url: `${import.meta.env.BASE_URL}models/lich.glb` },
+  dragon: { url: `${import.meta.env.BASE_URL}models/dragon.glb` },
 };
 
 // Eagerly preload known glTF assets so the first arena entry doesn't stall.

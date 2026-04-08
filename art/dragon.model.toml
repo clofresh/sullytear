@@ -1,0 +1,225 @@
+# art/dragon.model.toml
+#
+# Port of src/combat/arena/models/DragonModel.tsx.
+# 
+# Contract: feet at y=0, height in [0.3, 4.0], animations named
+# idle/attack/hit/death exactly. See art/README.md.
+
+name = "dragon"
+description = """
+A monolithic red drake. Breathes fire and dominates the skyline.
+"""
+
+# -- Skeleton ----------------------------------------------------------------
+[[bones]]
+name = "root"
+head = [0.0, 0.0, 0.0]
+
+# -- Geometry ----------------------------------------------------------------
+# Body: capsule radius 0.4, height 0.6, pos [0, 0.3, 0]
+[[parts]]
+shape  = "capsule"
+radius = 0.4
+height = 0.6
+pos    = [0.0, 0.3, 0.0]
+color  = "#8B2500"
+bone   = "root"
+
+# Belly plate: capsule radius 0.25, height 0.3, pos [0, 0.65, 0.3]
+[[parts]]
+shape  = "capsule"
+radius = 0.25
+height = 0.3
+pos    = [0.0, 0.65, 0.3]
+color  = "#cc6633"
+bone   = "root"
+
+# Neck: capsule radius 0.15, height 0.3, pos [0, 0.8, 0.15], rot [0.3, 0, 0]
+[[parts]]
+shape  = "capsule"
+radius = 0.15
+height = 0.3
+pos    = [0.0, 0.8, 0.15]
+rot    = [0.3, 0.0, 0.0]
+color  = "#8B2500"
+bone   = "root"
+
+# Head: sphere radius 0.22, pos [0, 1.1, 0.25]
+[[parts]]
+shape  = "sphere"
+radius = 0.22
+pos    = [0.0, 1.1, 0.25]
+color  = "#8B2500"
+bone   = "root"
+
+# Snout: box [0.15, 0.1, 0.2], pos [0, 1.05, 0.45], rot [0.2, 0, 0]
+[[parts]]
+shape  = "box"
+size   = [0.15, 0.1, 0.2]
+pos    = [0.0, 1.05, 0.45]
+rot    = [0.2, 0.0, 0.0]
+color  = "#8B2500"
+bone   = "root"
+
+# Eyes: sphere radius 0.04, pos [+/-0.1, 1.15, 0.4]
+[[parts]]
+shape  = "sphere"
+radius = 0.04
+pos    = [-0.1, 1.15, 0.4]
+color  = "#FFD700"
+bone   = "root"
+
+[[parts]]
+shape  = "sphere"
+radius = 0.04
+pos    = [0.1, 1.15, 0.4]
+color  = "#FFD700"
+bone   = "root"
+
+# Horns: cone radius 0.03, height 0.2, pos [+/-0.12, 1.25, 0.15], rot [0.3, 0, +/-0.3]
+[[parts]]
+shape  = "cone"
+radius = 0.03
+height = 0.2
+pos    = [-0.12, 1.25, 0.15]
+rot    = [0.3, 0.0, -0.3]
+color  = "#5a1a00"
+bone   = "root"
+
+[[parts]]
+shape  = "cone"
+radius = 0.03
+height = 0.2
+pos    = [0.12, 1.25, 0.15]
+rot    = [0.3, 0.0, 0.3]
+color  = "#5a1a00"
+bone   = "root"
+
+# Left wing: plane [0.8, 0.5], pos [-0.4, 0.6, -0.1], rot [0, 0, -0.6]
+[[parts]]
+shape  = "plane"
+size   = [0.8, 0.5]
+pos    = [-0.4, 0.6, -0.1]
+rot    = [0.0, 0.0, -0.6]
+color  = "#6a1a00"
+bone   = "root"
+
+# Right wing: plane [0.8, 0.5], pos [0.4, 0.6, -0.1], rot [0, 0, 0.6]
+[[parts]]
+shape  = "plane"
+size   = [0.8, 0.5]
+pos    = [0.4, 0.6, -0.1]
+rot    = [0.0, 0.0, 0.6]
+color  = "#6a1a00"
+bone   = "root"
+
+# Tail: capsule radius 0.08, height 0.4, pos [0, 0.1, -0.4], rot [0.5, 0, 0]
+[[parts]]
+shape  = "capsule"
+radius = 0.08
+height = 0.4
+pos    = [0.0, 0.1, -0.4]
+rot    = [0.5, 0.0, 0.0]
+color  = "#8B2500"
+bone   = "root"
+
+# Tail tip: cone radius 0.06, height 0.15, pos [0, -0.15, -0.35], rot [0.8, 0, 0]
+# Relative to tail root, approximated to global.
+[[parts]]
+shape  = "cone"
+radius = 0.06
+height = 0.15
+pos    = [0.0, -0.05, -0.75]
+rot    = [0.8, 0.0, 0.0]
+color  = "#cc4400"
+bone   = "root"
+
+# Front claws: capsule radius 0.07, height 0.25, pos [+/-0.3, 0.05, 0.15], rot [0, 0, +/-0.2]
+[[parts]]
+shape  = "capsule"
+radius = 0.07
+height = 0.25
+pos    = [-0.3, 0.05, 0.15]
+rot    = [0.0, 0.0, -0.2]
+color  = "#8B2500"
+bone   = "root"
+
+[[parts]]
+shape  = "capsule"
+radius = 0.07
+height = 0.25
+pos    = [0.3, 0.05, 0.15]
+rot    = [0.0, 0.0, 0.2]
+color  = "#8B2500"
+bone   = "root"
+
+# -- Animations --------------------------------------------------------------
+[animations.idle]
+loop = true
+duration = 2.0
+[[animations.idle.tracks]]
+bone = "root"
+path = "scale"
+times  = [0.0, 0.5, 1.0, 1.5, 2.0]
+values = [
+  [1.00, 1.00, 1.00],
+  [1.02, 0.98, 1.02],
+  [1.00, 1.00, 1.00],
+  [0.98, 1.02, 0.98],
+  [1.00, 1.00, 1.00],
+]
+
+[[animations.idle.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.5, 1.0, 1.5, 2.0]
+values = [
+  [0.0, 0.00, 0.0],
+  [0.0, 0.02, 0.0],
+  [0.0, 0.00, 0.0],
+  [0.0, 0.02, 0.0],
+  [0.0, 0.00, 0.0],
+]
+
+[animations.attack]
+loop = false
+duration = 0.6
+[[animations.attack.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.15, 0.3, 0.6]
+values = [
+  [0.0, 0.0, 0.0],
+  [0.0, 0.1, -0.1],
+  [0.0, 0.0, 0.5],
+  [0.0, 0.0, 0.0],
+]
+
+[animations.hit]
+loop = false
+duration = 0.3
+[[animations.hit.tracks]]
+bone = "root"
+path = "translation"
+times  = [0.0, 0.06, 0.12, 0.18, 0.24, 0.3]
+values = [
+  [0.0, 0.0, 0.0],
+  [0.05, 0.0, 0.0],
+  [-0.05, 0.0, 0.0],
+  [0.05, 0.0, 0.0],
+  [-0.05, 0.0, 0.0],
+  [0.0, 0.0, 0.0],
+]
+
+[animations.death]
+loop = false
+duration = 1.2
+[[animations.death.tracks]]
+bone = "root"
+path = "scale"
+times  = [0.0, 0.3, 1.2]
+values = [
+  [1.0, 1.0, 1.0],
+  [1.2, 0.8, 1.2],
+  [1.5, 0.2, 1.5],
+]
