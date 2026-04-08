@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCombatStore } from '../game/combatStore';
 import { useRunStore, calculateGold } from '../game/runStore';
 import RewardScreen from './RewardScreen';
+import StickerPlacement from './StickerPlacement';
 import './CombatOverlay.css';
 
 export default function CombatOverlay() {
@@ -28,6 +29,7 @@ export default function CombatOverlay() {
   return (
     <AnimatePresence>
       {rewardPhase === 'draft' && <RewardScreen key="reward-draft" />}
+      {rewardPhase === 'placement' && <StickerPlacement key="reward-placement" />}
       {combatResult === 'victory' && isRunActive && !isFinalEncounter && rewardPhase === 'none' && (
         <motion.div
           className="combat-overlay combat-victory"
