@@ -8,6 +8,7 @@ import {
   recordMonsterSlain,
   getHeroHp,
 } from './orchestrator';
+import type { Sticker } from './stickers/types';
 
 interface RunState {
   isRunActive: boolean;
@@ -18,12 +19,16 @@ interface RunState {
   goldEarned: number;
   lastGoldAwarded: number;
   runResult: 'none' | 'victory' | 'defeat';
+  stickers: Sticker[];
 }
 
 interface RunActions {
   startRun: (difficulty: Difficulty) => void;
   advanceEncounter: () => void;
   endRun: (result: 'victory' | 'defeat') => void;
+  addSticker: (sticker: Sticker) => void;
+  removeSticker: (stickerId: string) => void;
+  decrementStickerUses: (stickerId: string) => void;
 }
 
 function pickEncounters(): MonsterDef[] {
@@ -47,6 +52,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
   goldEarned: 0,
   lastGoldAwarded: 0,
   runResult: 'none',
+  stickers: [],
 
   startRun: (difficulty: Difficulty) => {
     const encounters = pickEncounters();
@@ -62,6 +68,7 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       goldEarned: 0,
       lastGoldAwarded: 0,
       runResult: 'none',
+      stickers: [],
     });
 
     startEncounter(config);
@@ -111,6 +118,25 @@ export const useRunStore = create<RunState & RunActions>()((set, get) => ({
     set({
       isRunActive: false,
       runResult: result,
+    });
+  },
+
+  addSticker: (sticker: Sticker) => {
+    set({ stickers: [...get().stickers, sticker] });
+  },
+
+  removeSticker: (stickerId: string) => {
+    set({ stickers: get().stickers.filter((s) => s.id !== stickerId) });
+  },
+
+  decrementStickerUses: (stickerId: string) => {
+    set({
+      stickers: get().stickers.flatMap((s) => {
+        if (s.id !== stickerId) return [s];
+        const next = (s.usesLeft ?? 0) - 1;
+        if (next <= 0) return [];
+        return [{ ...s, usesLeft: next }];
+      }),
     });
   },
 }));
