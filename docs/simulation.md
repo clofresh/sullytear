@@ -90,9 +90,51 @@ scripts/sim/
 Each worker imports its own copy of the store singletons, so runs in
 different workers never share state.
 
+## Metrics baseline
+
+A committed snapshot (`sim/baseline.json`) captures aggregate metrics from
+2000 greedy runs × 3 difficulties. It's the reference point for detecting
+balance regressions.
+
+### Generating the baseline
+
+```sh
+npm run sim:baseline
+```
+
+This overwrites `sim/baseline.json`. Commit the result as part of any
+human-reviewed balance PR.
+
+### Comparing against the baseline
+
+```sh
+npm run sim:compare
+```
+
+Runs a fresh sim with the same parameters as the baseline, prints a
+human-readable diff table, and exits non-zero if any envelope is violated.
+
+### Envelopes
+
+Target envelopes are defined in `sim/envelopes.json`. Each difficulty can
+specify `[min, max]` ranges for headline metrics (`null` = unbounded).
+Global rules apply across all difficulties:
+
+| rule | meaning |
+|---|---|
+| `maxSingleDetectorDamagePct` | No single damage source may exceed this fraction of total damage |
+| `maxStockCycleDamagePct` | `Waste!` (stock-cycle) damage must stay below this fraction |
+| `autoMergeDriftPct` | Auto-merge tier: all headline numbers within ±this of baseline |
+
+### Baseline update policy
+
+- **Human-reviewed balance PRs:** regenerate and commit the baseline.
+- **Auto-merge PRs:** must stay within the ±2% drift window; do **not**
+  update the baseline.
+- A weekly scheduled job re-runs the sim against `main` and fails loudly
+  if headline metrics drift without an intervening balance PR.
+
 ## Non-goals (tracked in later pieces)
 
-- Baseline snapshots and envelope comparison (`sim/baseline.json`) —
-  **piece 2**.
 - Agent roles that consume the sim — **piece 3**.
 - GitHub Actions nightly orchestration — **piece 4**.
