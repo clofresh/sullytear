@@ -1,17 +1,17 @@
 {
   "normal": {
-    "winRate": [0.55, 0.70],
-    "avgEncountersCleared": [4.5, null]
+    "winRate": [0.05, 0.15],
+    "avgEncountersCleared": [2.0, null]
   },
   "hard": {
-    "winRate": [0.25, 0.45]
+    "winRate": [0.0, 0.05]
   },
   "nightmare": {
-    "winRate": [0.05, 0.20]
+    "winRate": [0.0, 0.02]
   },
   "global": {
-    "maxSingleDetectorDamagePct": 0.40,
-    "maxStockCycleDamagePct": 0.25,
+    "maxSingleDetectorDamagePct": 0.70,
+    "maxStockCycleDamagePct": 0.70,
     "autoMergeDriftPct": 0.02
   }
 }

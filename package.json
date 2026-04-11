@@ -13,6 +13,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "sim": "node --import tsx scripts/sim/runner.mjs",
+    "sim:baseline": "node --import tsx scripts/sim/baseline.mjs",
+    "sim:compare": "node --import tsx scripts/sim/compare.mjs",
     "typecheck": "node scripts/generate-build-info.js && tsc --noEmit"
   },
   "dependencies": {
