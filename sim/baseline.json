@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-04-11T00:49:42.981Z",
+  "runsPerDifficulty": 2000,
+  "seed": 1,
+  "maxTurns": 400,
+  "difficulties": {
+    "normal": {
+      "runs": 2000,
+      "wins": 173,
+      "winRate": 0.0865,
+      "avgEncountersCleared": 2.512,
+      "avgTurns": 97.2515,
+      "damageBySource": {
+        "hero-attack": 0.1119659203152318,
+        "Reveal!": 0.18811436660486686,
+        "Poison!": 0.051452295307969007,
+        "Waste!": 0.6082235990724748,
+        "Combo x3!": 0.018841016052101985,
+        "Combo x4!": 0.011282425087549718,
+        "Combo x7!": 0.0011831756646119554,
+        "Combo x5!": 0.005387674901358011,
+        "Combo x6!": 0.002630453040074794,
+        "Combo x9!": 0.00009507661590631785,
+        "Combo x8!": 0.0007183566535144014,
+        "Combo x10!": 0.00010564068434035316
+      },
+      "healBySource": {
+        "hero-heal": 62438,
+        "Column Clear!": 9115
+      }
+    },
+    "hard": {
+      "runs": 2000,
+      "wins": 0,
+      "winRate": 0,
+      "avgEncountersCleared": 1.0495,
+      "avgTurns": 56.178,
+      "damageBySource": {
+        "hero-attack": 0.11223276557168693,
+        "Reveal!": 0.1956203847538004,
+        "Poison!": 0.05256084950140536,
+        "Waste!": 0.5972111499337182,
+        "Combo x3!": 0.019980229321647072,
+        "Combo x5!": 0.006195419944696766,
+        "Combo x4!": 0.010969537666786627,
+        "Combo x6!": 0.00284260444521381,
+        "Combo x8!": 0.000655985641203187,
+        "Combo x11!": 0.00010022002851715356,
+        "Combo x7!": 0.001466856781023793,
+        "Combo x9!": 0.00016399641030079675
+      },
+      "healBySource": {
+        "hero-heal": 36721,
+        "Column Clear!": 5330
+      }
+    },
+    "nightmare": {
+      "runs": 2000,
+      "wins": 0,
+      "winRate": 0,
+      "avgEncountersCleared": 0.468,
+      "avgTurns": 39.464,
+      "damageBySource": {
+        "hero-attack": 0.11308408816812501,
+        "Reveal!": 0.19867337250776218,
+        "Poison!": 0.054258294629339766,
+        "Waste!": 0.5866541787483001,
+        "Combo x3!": 0.021092607323394318,
+        "Combo x5!": 0.005965974699135255,
+        "Combo x4!": 0.013291935028611018,
+        "Combo x6!": 0.004233917528418568,
+        "Combo x7!": 0.0017962074362987863,
+        "Combo x8!": 0.0007184829745195146,
+        "Combo x9!": 0.00023094095609555823
+      },
+      "healBySource": {
+        "hero-heal": 26207,
+        "Column Clear!": 3880
+      }
+    }
+  }
+}
