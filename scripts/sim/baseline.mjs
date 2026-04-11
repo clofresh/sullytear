@@ -57,6 +57,7 @@ const baseline = {
   generatedAt: new Date().toISOString(),
   runsPerDifficulty: RUNS_PER_DIFFICULTY,
   seed: SEED,
+  maxTurns: MAX_TURNS,
   difficulties,
 };
 

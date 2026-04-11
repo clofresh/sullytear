@@ -9,6 +9,9 @@ export interface AggregatedMetrics {
 }
 
 export function aggregateRecords(jsonLines: string[]): AggregatedMetrics {
+  if (jsonLines.length === 0) {
+    throw new Error('aggregateRecords: no records to aggregate');
+  }
   const records = jsonLines.map((l) => JSON.parse(l));
   const wins = records.filter((r: any) => r.result === 'victory').length;
   const avgEnc = records.reduce((s: number, r: any) => s + r.encountersCleared, 0) / records.length;

@@ -47,13 +47,19 @@ if (!fs.existsSync(baselinePath)) {
 const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
 const envelopes = JSON.parse(fs.readFileSync(envelopesPath, 'utf8'));
 
-const { runsPerDifficulty, seed } = baseline;
+const { runsPerDifficulty, seed, maxTurns = 400 } = baseline;
 const global_ = envelopes.global ?? {};
 const maxSingleDetectorPct = global_.maxSingleDetectorDamagePct ?? 1.0;
 const maxStockCyclePct = global_.maxStockCycleDamagePct ?? 1.0;
 const driftPct = global_.autoMergeDriftPct ?? 0.05;
 
 const DIFFICULTIES = ['normal', 'hard', 'nightmare'];
+
+for (const d of DIFFICULTIES) {
+  if (!envelopes[d]) {
+    process.stderr.write(`[compare] warning: no envelope entry for difficulty "${d}" — all checks will pass\n`);
+  }
+}
 
 const violations = [];
 const rows = [];
@@ -66,7 +72,7 @@ for (const difficulty of DIFFICULTIES) {
     seed,
     player: 'greedy',
     difficulty,
-    maxTurns: 400,
+    maxTurns,
   });
   process.stderr.write(`[compare] ${difficulty}: ${lines.length} games done\n`);
 

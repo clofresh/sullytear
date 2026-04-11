@@ -1,7 +1,8 @@
 {
-  "generatedAt": "2026-04-11T00:45:52.836Z",
+  "generatedAt": "2026-04-11T00:49:42.981Z",
   "runsPerDifficulty": 2000,
   "seed": 1,
+  "maxTurns": 400,
   "difficulties": {
     "normal": {
       "runs": 2000,
