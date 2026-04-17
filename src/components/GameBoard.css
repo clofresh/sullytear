@@ -6,6 +6,7 @@
   padding: 32px 8px 8px;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 .top-row {
