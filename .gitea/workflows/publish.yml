@@ -1,0 +1,54 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build web bundle
+        shell: bash
+        run: |
+          node -v && npm -v
+          npm install
+          npm test
+          npm run build
+
+      - name: Deploy to Garage S3
+        shell: pwsh
+        env:
+          INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          INFISICAL_PATH: /games
+          S3_BUCKET: games
+          S3_PATH: /sullytear
+          SOURCE_DIR: ./dist
+
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          Import-Module Homelab
+
+          # Authenticate with Infisical
+          Connect-Infisical
+
+          # Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in environment for AWS CLI
+          Get-S3Secrets -InfisicalPath $env:INFISICAL_PATH -InfisicalProjectId $env:INFISICAL_PROJECT_ID
+
+          # Deploy to S3
+          Publish-S3Site -SourceDir $env:SOURCE_DIR -S3Bucket $env:S3_BUCKET -S3Path $env:S3_PATH
