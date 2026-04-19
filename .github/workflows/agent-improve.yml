@@ -1,0 +1,197 @@
+name: Agent Improvement Loop
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Daily at 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      role:
+        description: 'Run a specific role (or "all")'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - balance-tuner
+          - bug-hunter
+          - coverage-filler
+          - simplifier
+          - docs-syncer
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        role:
+          - balance-tuner
+          - bug-hunter
+          - coverage-filler
+          - simplifier
+          - docs-syncer
+    # Skip roles not selected when triggered manually with a specific role
+    if: >-
+      github.event_name != 'workflow_dispatch'
+      || inputs.role == 'all'
+      || inputs.role == matrix.role
+    concurrency:
+      group: agent-improve-${{ matrix.role }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Check for repeated failures
+        id: failure-check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Count consecutive failures for this role in the last 3 runs
+          FAILURES=$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow agent-improve.yml \
+            --limit 3 \
+            --json conclusion,jobs \
+            --jq "[.[] | select(.jobs[]?.name == \"agent (${{ matrix.role }})\") | .conclusion] | map(select(. == \"failure\")) | length")
+
+          if [ "$FAILURES" -ge 3 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            # Post a comment on the tracking issue
+            gh issue comment 75 \
+              --repo "$GITHUB_REPOSITORY" \
+              --body "⚠️ Agent role **${{ matrix.role }}** has failed 3 consecutive nights. Skipping until acknowledged. cc @clofresh"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if repeatedly failing
+        if: steps.failure-check.outputs.skip == 'true'
+        run: |
+          echo "::warning::Skipping ${{ matrix.role }} due to 3 consecutive failures"
+          exit 0
+
+      - uses: actions/checkout@v4
+        if: steps.failure-check.outputs.skip != 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.failure-check.outputs.skip != 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.failure-check.outputs.skip != 'true'
+        run: npm ci
+
+      - name: Install Claude Code
+        if: steps.failure-check.outputs.skip != 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Create agent branch
+        if: steps.failure-check.outputs.skip != 'true'
+        run: |
+          BRANCH="claude/${{ matrix.role }}-$(date +%Y%m%d)"
+          git checkout -b "$BRANCH"
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+      - name: Run agent
+        if: steps.failure-check.outputs.skip != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          PREAMBLE=$(cat agents/roles/_preamble.md)
+          ROLE_PROMPT=$(cat "agents/roles/${{ matrix.role }}.md")
+
+          claude --print \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            --model sonnet \
+            "$PREAMBLE
+
+          $ROLE_PROMPT
+
+          You are working in the repository root. Follow your workflow exactly.
+          When done, commit your changes with a descriptive message.
+          Do NOT open a PR — the CI pipeline handles that."
+
+      - name: Run gate commands
+        id: gates
+        if: steps.failure-check.outputs.skip != 'true'
+        run: |
+          if git diff --quiet HEAD origin/main; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+            echo "No changes produced by agent"
+            exit 0
+          fi
+          echo "empty=false" >> "$GITHUB_OUTPUT"
+
+          npm run typecheck 2>&1 | tee /tmp/gate-typecheck.log
+          npm test 2>&1 | tee /tmp/gate-test.log
+          npm run build 2>&1 | tee /tmp/gate-build.log
+          npm run validate:models 2>&1 | tee /tmp/gate-validate.log
+          npm run sim:compare 2>&1 | tee /tmp/gate-sim.log
+
+      - name: Upload gate logs on failure
+        if: failure() && steps.gates.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-logs-${{ matrix.role }}
+          path: /tmp/gate-*.log
+          retention-days: 7
+
+      - name: Open PR
+        if: >-
+          steps.failure-check.outputs.skip != 'true'
+          && steps.gates.outputs.empty != 'true'
+          && steps.gates.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin "$BRANCH"
+
+          # Determine merge tier labels
+          LABELS="agent,${{ matrix.role }}"
+          case "${{ matrix.role }}" in
+            coverage-filler|docs-syncer)
+              LABELS="$LABELS,auto-merge"
+              ;;
+            simplifier)
+              # Auto-merge only if sim:compare shows <=2% drift
+              if grep -q "All checks PASSED" /tmp/gate-sim.log; then
+                LABELS="$LABELS,auto-merge"
+              fi
+              ;;
+            # balance-tuner and bug-hunter (source fixes) always need human review
+          esac
+
+          SIM_OUTPUT=$(cat /tmp/gate-sim.log 2>/dev/null || echo "N/A")
+
+          gh pr create \
+            --title "[${{ matrix.role }}] $(date +%Y-%m-%d) automated improvement" \
+            --label "$LABELS" \
+            --body "$(cat <<EOF
+          ## Agent: ${{ matrix.role }}
+
+          Automated PR from the nightly improvement loop.
+
+          ### Gate results
+          - Typecheck: ✅
+          - Tests: ✅
+          - Build: ✅
+          - Model validation: ✅
+          - Sim compare: ✅
+
+          ### Sim compare output
+          \`\`\`
+          $SIM_OUTPUT
+          \`\`\`
+
+          ---
+          🤖 Generated by the agent improvement loop
+          EOF
+          )"
