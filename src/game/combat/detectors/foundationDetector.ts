@@ -1,5 +1,6 @@
 import type { Card } from '../../types';
 import type { DetectorContext } from '../types';
+import { foundationId } from '../../pileId';
 
 /**
  * Detection #1: Foundation pile growth/shrinkage.
@@ -31,7 +32,12 @@ export function detectFoundationChanges(
         damage = Math.round(damage * empower);
         ctx.combat.setEmpowerMultiplier(1.0);
       }
+      const stickerBonus = ctx.stickers.foundationDamageBonus(topCard, foundationId(i));
+      // Flat sticker bonuses (Sharpened, Forge) are added AFTER the empower multiply — they remain flat and do not scale with Surge.
+      damage += stickerBonus;
       ctx.combat.dealDamageToMonster(damage);
+      const vampHeal = ctx.stickers.onDamageDealt(damage);
+      if (vampHeal > 0) ctx.combat.healHero(vampHeal);
 
       // Royal Awakening — Tier 3 (Awakens!)
       if (topCard.rank === 1) {

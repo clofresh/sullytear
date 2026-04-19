@@ -46,6 +46,13 @@ function makeCtx(overrides: Partial<{ empowerMultiplier: number; poisonTurns: nu
     setHeroHp,
     playTriggeredCards: new Set<string>(),
     revealStreak: { value: 0 },
+    stickers: {
+      getAll: () => [],
+      foundationDamageBonus: () => 0,
+      onReveal: () => {},
+        onUnreveal: () => {},
+      onDamageDealt: () => 0,
+    },
   };
   return { ctx, combat, setHeroHp };
 }

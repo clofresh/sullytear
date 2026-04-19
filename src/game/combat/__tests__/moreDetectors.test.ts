@@ -48,6 +48,13 @@ function makeCtx(
     setHeroHp,
     playTriggeredCards: triggered,
     revealStreak,
+    stickers: {
+      getAll: () => [],
+      foundationDamageBonus: () => 0,
+      onReveal: () => {},
+        onUnreveal: () => {},
+      onDamageDealt: () => 0,
+    },
   };
   return { ctx, combat, setHeroHp, revealStreak };
 }

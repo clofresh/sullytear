@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCombatStore } from '../game/combatStore';
 import { useRunStore, calculateGold } from '../game/runStore';
+import RewardScreen from './RewardScreen';
+import StickerPlacement from './StickerPlacement';
 import './CombatOverlay.css';
 
 export default function CombatOverlay() {
@@ -11,6 +13,8 @@ export default function CombatOverlay() {
   const encounters = useRunStore(s => s.encounters);
   const goldEarned = useRunStore(s => s.goldEarned);
   const advanceEncounter = useRunStore(s => s.advanceEncounter);
+  const beginReward = useRunStore(s => s.beginReward);
+  const rewardPhase = useRunStore(s => s.rewardPhase);
   const endRun = useRunStore(s => s.endRun);
 
   const heroHp = useCombatStore(s => s.heroHp);
@@ -24,7 +28,9 @@ export default function CombatOverlay() {
 
   return (
     <AnimatePresence>
-      {combatResult === 'victory' && isRunActive && !isFinalEncounter && (
+      {rewardPhase === 'draft' && <RewardScreen key="reward-draft" />}
+      {rewardPhase === 'placement' && <StickerPlacement key="reward-placement" />}
+      {combatResult === 'victory' && isRunActive && !isFinalEncounter && rewardPhase === 'none' && (
         <motion.div
           className="combat-overlay combat-victory"
           initial={{ opacity: 0 }}
@@ -43,8 +49,8 @@ export default function CombatOverlay() {
             <div className="combat-overlay-progress">Fight {encounterProgress}</div>
             <div className="combat-overlay-gold">&#9733; +{monsterGold} Gold</div>
             <p className="combat-overlay-subtitle">Prepare for the next challenger.</p>
-            <button className="combat-overlay-btn victory-btn" onClick={advanceEncounter}>
-              Next Encounter
+            <button className="combat-overlay-btn victory-btn" onClick={beginReward}>
+              Claim Reward
             </button>
           </motion.div>
         </motion.div>

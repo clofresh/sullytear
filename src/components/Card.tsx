@@ -3,6 +3,9 @@ import { motion, type PanInfo } from 'framer-motion';
 import { Card as CardType, getColor, getRankLabel } from '../game/types';
 import { SUIT_SYMBOLS } from '../utils/constants';
 import { PIP_LAYOUTS } from '../utils/pipLayouts';
+import { useRunStore } from '../game/runStore';
+import { findCardStickers } from '../game/stickers/queries';
+import Sticker from './Sticker';
 import FaceCard from './FaceCard';
 import './Card.css';
 
@@ -46,6 +49,7 @@ export default function Card({
   zIndex = 0,
 }: CardProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const cardStickers = useRunStore((s) => findCardStickers(s.stickers, card.id));
   const color = getColor(card.suit);
   const rank = getRankLabel(card.rank);
   const suit = SUIT_SYMBOLS[card.suit];
@@ -103,6 +107,19 @@ export default function Card({
             <span className="card-rank">{rank}</span>
             <span className="card-suit-small">{suit}</span>
           </div>
+          {cardStickers.length > 0 && (
+            <div className="card-stickers">
+              {cardStickers.map((s, i) => (
+                <div
+                  key={s.id}
+                  className="card-sticker-pip"
+                  style={{ top: 2 + i * 18, right: 2 }}
+                >
+                  <Sticker defId={s.defId} instanceId={s.id} size="pip" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="card-back" />
       </div>

@@ -1,5 +1,6 @@
-import type { Card } from '../types';
+import type { Card, PileId } from '../types';
 import { isFaceCard } from '../faceCard';
+import type { Sticker } from '../stickers/types';
 
 /**
  * Snapshot of game state used by the EventDetector to compare frames.
@@ -65,6 +66,21 @@ export interface DetectorContext {
    * ("Diligent Play"). Decrements symmetrically on un-reveal for undo.
    */
   revealStreak: { value: number };
+  /**
+   * Sticker hooks. Detectors call these to apply sticker effects without
+   * needing to know about the registry or run store directly.
+   */
+  stickers: {
+    getAll: () => Sticker[];
+    /** Additive damage bonus from stickers for a foundation event. */
+    foundationDamageBonus: (card: Card, pileId: PileId) => number;
+    /** Additional events fired on reveal (e.g. Volatile damage). */
+    onReveal: (card: Card) => void;
+    /** Reverse of onReveal for undo (e.g. heal back Volatile damage). */
+    onUnreveal: (card: Card) => void;
+    /** After any damage-to-monster event: returns hero-heal delta from Vampire etc. */
+    onDamageDealt: (amount: number) => number;
+  };
 }
 
 export interface GameStateLike {

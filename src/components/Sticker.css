@@ -1,0 +1,22 @@
+.sticker {
+  display: inline-block;
+  line-height: 0;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.sticker svg {
+  display: block;
+}
+
+.sticker[role='button'] {
+  cursor: pointer;
+}
+
+.sticker[role='button']:hover {
+  filter: brightness(1.1);
+}
+
+.sticker-pip {
+  vertical-align: middle;
+}

@@ -3,7 +3,7 @@
 Index of guidelines for agentic coding assistants working on Sullytear. Read the linked docs before making changes.
 
 - [Commands](./docs/commands.md) — dev, build, test, typecheck, and model scripts.
-- [Architecture](./docs/architecture.md) — Zustand store layout, combat event detection pipeline, rendering layout, and agent notes on where to hook new behavior.
+- [Architecture](./docs/architecture.md) — Zustand store layout, combat event detection pipeline (including the sticker hook layer and the between-encounter reward/placement screens), rendering layout, and agent notes on where to hook new behavior.
 - [State Management](./docs/state-management.md) — deep dive on the four stores, the combat subscription chain, undo model, and persistence rules.
 - [Game Design](./docs/game-design.md) — core loop, monster roster, difficulty scaling, and the card-action → combat-event mapping.
 - [UI / UX](./docs/ui-ux.md) — screen flow, board layout, custom drag-and-drop system, and HUD conventions.

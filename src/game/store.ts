@@ -31,9 +31,21 @@ export function takeSnapshot(state: GameState): Snapshot {
   };
 }
 
-function createInitialState(drawMode: 1 | 3 = 1): Omit<GameState, 'gameId'> {
+export interface PreDealtDeal {
+  tableau: Card[][];
+  stock: Card[];
+}
+
+export function buildDeal(): PreDealtDeal {
   const deck = shuffle(createDeck());
-  const { tableau, stock } = dealTableau(deck);
+  return dealTableau(deck);
+}
+
+function createInitialState(
+  drawMode: 1 | 3 = 1,
+  preDealt?: PreDealtDeal,
+): Omit<GameState, 'gameId'> {
+  const { tableau, stock } = preDealt ?? buildDeal();
   return {
     stock,
     waste: [],
@@ -84,10 +96,10 @@ export const useGameStore = create<GameState & GameActions>()(
       ...createInitialState(),
       gameId: 1,
 
-      newGame: (drawMode?: 1 | 3) => {
+      newGame: (drawMode?: 1 | 3, preDealt?: PreDealtDeal) => {
         const mode = drawMode ?? get().drawMode;
         set({
-          ...createInitialState(mode),
+          ...createInitialState(mode, preDealt),
           gameId: get().gameId + 1,
         });
       },

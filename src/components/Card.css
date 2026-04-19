@@ -35,6 +35,20 @@
   -webkit-backface-visibility: hidden;
 }
 
+.card-stickers {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.card-sticker-pip {
+  position: absolute;
+}
+
 .card-face {
   background: var(--card-white);
   border: 1px solid var(--card-border);
